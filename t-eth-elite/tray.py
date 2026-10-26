@@ -9,7 +9,7 @@ The board sits on 3 mm standoffs (the microSD socket hangs 2.1 mm under the PCB,
 at the PCB top surface. Snap version (out/tray_snap.stl): pins through the corner holes and four flex
 clips over the PCB edge, press it in; screw version (out/tray.stl): M2.5 self-tapping into the standoffs.
 
-Run:  uv run --with cadquery python tray.py   ->  out/tray.stl, out/tray_snap.stl
+Run:  uv run --with cadquery python tray.py   ->  out/tray.stl, out/tray_snap.stl, out/pillars.stl
 """
 import os
 import cadquery as cq
@@ -35,12 +35,21 @@ LIP = 0.9
 CLIPS = [("-y", -12.0), ("-y", 12.0), ("+y", -18.0), ("-x", 15.0)]
 # Raspberry Pi HAT on the GPIO header: its header-side holes land on the board's (28.23, -19.97) and
 # (-29.77, -19.97) holes, so its far holes sit 49 mm further +Y, past the board edge. Two pillars hold
-# that edge up; HAT_GAP = board top to HAT underside (2.5 mm male header plastic + two stacked 8.5 mm female headers = 19.5 mm).
+# that edge up. They are separate parts (out/pillars.stl) that plug into sockets in two bosses on the
+# tray, so a wrong height only means reprinting a 3-minute pillar, and they print lying down so the
+# pin's layers run along it instead of across (a vertical 2.4 mm pin snaps off at a layer line).
+# HAT_GAP = board top to HAT underside (2.5 mm male header plastic + two stacked 8.5 mm female headers).
 HAT = True
 HAT_GAP = 19.5
+HAT_GAPS = (19.0, 19.5, 20.0)   # pillar set, 2 of each; 1, 2, 3 grooves near the peg end
 HAT_HOLES = [(-29.77, 29.03), (28.23, 29.03)]
+HAT_BOSS_D = 10.0
 HAT_POST_D = 7.0
 HAT_PIN_D = 2.4       # into the HAT's 2.75 mm holes
+PEG_D = 4.0           # pillar peg; socket is PEG_D + PEG_CLEAR
+PEG_CLEAR = 0.3
+PEG_L = 4.0
+FLAT = 1.1            # pillars are cut flat this far from their axis to lie on the bed
 
 IW, IH = BW + 2 * CLEAR, BH + 2 * CLEAR
 OW, OH = IW + 2 * WALL, IH + 2 * WALL
@@ -65,13 +74,13 @@ def tray(snap=False):
     body = body.cut(cut_box(-2.0, 26.0, IH / 2 - 1, big, FLOOR + 1.0, WALL_H + 1))
     posts = cq.Workplane("XY").workplane(offset=FLOOR).pushPoints(HOLES).circle(STANDOFF_D / 2).extrude(STANDOFF_H)
     body = body.union(posts)
-    if HAT:  # pillars under the far edge of a Pi HAT, pins into its two far holes
-        hz = WALL_H + HAT_GAP
+    if HAT:  # bosses under the HAT's far holes, flush with the board top, with a socket for a pillar
         for x, y in HAT_HOLES:
-            body = body.union(cq.Workplane("XY").circle(HAT_POST_D / 2).extrude(hz).translate((x, y, 0)))
-            body = body.union(cut_box(x - 2, x + 2, IH / 2, y, 0, WALL_H))  # rib back to the wall
-            body = body.union(cq.Workplane("XY").workplane(offset=hz).center(x, y).circle(HAT_PIN_D / 2)
-                              .extrude(PCB_T + 0.8).faces(">Z").edges().chamfer(0.5))
+            body = body.union(cq.Workplane("XY").circle(HAT_BOSS_D / 2).extrude(WALL_H).translate((x, y, 0)))
+            body = body.union(cut_box(x - 3, x + 3, IH / 2, y, 0, WALL_H))  # tie it to the wall
+            body = body.cut(cq.Workplane("XY").workplane(offset=WALL_H - PEG_L - 0.5).center(x, y)
+                            .circle((PEG_D + PEG_CLEAR) / 2).extrude(PEG_L + 1)
+                            .faces(">Z").edges().chamfer(0.4))
     if not snap:
         return body.cut(cq.Workplane("XY").workplane(offset=FLOOR + 1).pushPoints(HOLES)
                         .circle(HOLE_D / 2).extrude(STANDOFF_H))
@@ -109,7 +118,32 @@ def tray(snap=False):
     return body
 
 
+def pillar(gap, grooves):
+    """Boss top -> HAT underside is exactly `gap` (the boss is flush with the board top)."""
+    p = (cq.Workplane("XY").circle(PEG_D / 2).extrude(PEG_L).faces("<Z").edges().chamfer(0.4)
+         .translate((0, 0, -PEG_L)))
+    p = p.union(cq.Workplane("XY").circle(HAT_POST_D / 2).extrude(gap))
+    p = p.union(cq.Workplane("XY").workplane(offset=gap).circle(HAT_PIN_D / 2).extrude(PCB_T + 0.8)
+                .faces(">Z").edges().chamfer(0.5))
+    for i in range(grooves):
+        p = p.cut(cq.Workplane("XY").workplane(offset=2 + i * 2).circle(HAT_POST_D / 2 + 1)
+                  .circle(HAT_POST_D / 2 - 0.5).extrude(0.8))
+    # flat side for the bed, then lay it down along X
+    p = p.cut(cut_box(-10, 10, -10, -FLAT, -PEG_L - 1, gap + 5))
+    return p.rotate((0, 0, 0), (1, 0, 0), 90).rotate((0, 0, 0), (0, 0, 1), 90).translate((0, 0, FLAT))
+
+
+def pillars():
+    out = cq.Workplane("XY")
+    for i, g in enumerate(HAT_GAPS):
+        for j in range(2):
+            out = out.union(pillar(g, i + 1).translate((0, (i * 2 + j) * 10, 0)))
+    return out
+
+
 if __name__ == "__main__":
+    if HAT:
+        cq.exporters.export(pillars(), os.path.join(OUT, "pillars.stl"))
     cq.exporters.export(tray(), os.path.join(OUT, "tray.stl"))
     cq.exporters.export(tray(snap=True), os.path.join(OUT, "tray_snap.stl"))
     print(f"tray {OW:.1f} x {OH:.1f} x {WALL_H:.1f} mm, PCB underside at z={PCB_Z}")
