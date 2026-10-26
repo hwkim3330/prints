@@ -12,3 +12,8 @@ Slice for the A1 (Bambu Studio in an x86 Linux container): `bambu-cli/slice.sh a
 Print: copy the `.gcode.3mf` into the SD card's `model/` folder and pick it on the printer.
 
 Not yet test-fitted on a real board (standoff height vs. pins under the board, M2.5 hole fit).
+
+## a1-cable-holder
+Bambu Lab A1 cable holder by its MakerWorld author (model 119194, CC BY-NC). It snaps onto the A1 above the X axis.
+https://makerworld.com/en/models/119194
+The STL comes from the public preview mesh. It is sliced to match the author's profile: 3 walls, 15% infill, no supports. It takes about 39 minutes and 16 g.
