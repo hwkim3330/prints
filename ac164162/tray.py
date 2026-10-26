@@ -10,7 +10,11 @@ which leaves room under the board for header pins and a flat LiPo (up to ~5 mm).
 edge is left open so the USB cable, switch and battery plug stay reachable; the long walls stop
 at the PCB top surface so Click boards and the Xplained Pro header are free.
 
-Run:  uv run --with cadquery python tray.py   ->  out/tray.stl
+Screwless variant (out/tray_snap.stl): Pi-case style. Pins on the four corner standoffs go through the
+board's corner holes and four flex clips on the long walls snap over the PCB edge; press the board
+straight down, pull a clip outwards to take it out.
+
+Run:  uv run --with cadquery python tray.py   ->  out/tray.stl, out/tray_snap.stl
 """
 import os
 import cadquery as cq
@@ -30,13 +34,19 @@ STANDOFF_D = 6.0
 INSERT = False        # True: 3.5 mm holes for M2.5 heat inserts
 HOLE_D = 3.5 if INSERT else 2.2
 OPEN_TOP_EDGE = True
+PIN_D = 2.3           # snap variant: pin through the 2.7 mm holes
+CLIP_W = 10.0         # snap variant: flex clip width, slot either side
+CLIP_SLOT = 1.0
+CLIP_DEPTH = 8.0      # how far down the slots run (clip flex length)
+LIP = 0.9             # how far the clip lip reaches over the PCB edge
+CLIP_YS = (24.0, -40.0)  # clip centres along the long walls (clear of the finger notch)
 
 IW, IH = BW + 2 * CLEAR, BH + 2 * CLEAR
 OW, OH = IW + 2 * WALL, IH + 2 * WALL
 WALL_H = FLOOR + STANDOFF_H + PCB_T       # flush with the PCB top
 
 
-def tray():
+def tray(snap=False):
     # board coordinates: x right, y down from the top-left corner; model: centred, +Y = board top edge
     def at(xm, ym):
         return (xm * MIL - BW / 2, BH / 2 - ym * MIL)
@@ -57,12 +67,36 @@ def tray():
     posts = (cq.Workplane("XY").workplane(offset=FLOOR).pushPoints(pts)
              .circle(STANDOFF_D / 2).extrude(STANDOFF_H))
     body = body.union(posts)
-    body = body.cut(cq.Workplane("XY").workplane(offset=FLOOR + 1).pushPoints(pts)
-                    .circle(HOLE_D / 2).extrude(STANDOFF_H))
+    if not snap:
+        return body.cut(cq.Workplane("XY").workplane(offset=FLOOR + 1).pushPoints(pts)
+                        .circle(HOLE_D / 2).extrude(STANDOFF_H))
+    # pins on the four corner standoffs, chamfered so the board drops on easily
+    corners = [at(x, y) for x, y in HOLES if x in (125, 2825)]
+    pins = (cq.Workplane("XY").workplane(offset=FLOOR + STANDOFF_H).pushPoints(corners)
+            .circle(PIN_D / 2).extrude(PCB_T + 0.8).faces(">Z").edges().chamfer(0.5))
+    body = body.union(pins)
+    top = WALL_H  # = PCB top surface
+    for sx in (-1, 1):
+        xin = sx * IW / 2
+        for y in CLIP_YS:
+            # raise the clip above the PCB, then free it with a slot each side
+            body = body.union(cq.Workplane("XY").workplane(offset=top - 1)
+                              .center(sx * (IW / 2 + WALL / 2), y).box(WALL, CLIP_W, 2.6, centered=(True, True, False)))
+            for dy in (-1, 1):
+                body = body.cut(cq.Workplane("XY").workplane(offset=top - CLIP_DEPTH)
+                                .center(sx * (IW / 2 + WALL / 2), y + dy * (CLIP_W + CLIP_SLOT) / 2)
+                                .box(WALL * 2, CLIP_SLOT, CLIP_DEPTH + 5, centered=(True, True, False)))
+            # lip: flat underside just above the PCB, sloped top so the board pushes the clip out
+            z0 = top + 0.15
+            lip = (cq.Workplane("XZ").polyline([(xin, z0), (xin - sx * LIP, z0), (xin - sx * LIP, z0 + 0.3),
+                                                 (xin, z0 + 1.4)]).close()
+                   .extrude(CLIP_W / 2, both=True).translate((0, y, 0)))
+            body = body.union(lip)
     return body
 
 
 if __name__ == "__main__":
     t = tray()
     cq.exporters.export(t, os.path.join(OUT, "tray.stl"))
-    print(f"tray {OW:.1f} x {OH:.1f} x {WALL_H:.1f} mm")
+    cq.exporters.export(tray(snap=True), os.path.join(OUT, "tray_snap.stl"))
+    print(f"tray {OW:.1f} x {OH:.1f} x {WALL_H:.1f} mm (+1.6 mm clips on the snap version)")
