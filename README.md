@@ -20,5 +20,5 @@ The STL comes from the public preview mesh. It is sliced to match the author's p
 
 ## t-eth-elite
 Open-top tray for the LILYGO T-ETH Elite (ESP32-S3 + W5500 + PoE). The board geometry comes from LILYGO's official 3D model. The RJ45, USB-C, BOOT/RST buttons and microSD slot are all left open.
-- `out/tray_snap.gcode.3mf`: screwless. Pins go through the 4 corner holes and 4 clips hold the board. About 19 minutes, 11 g.
-- `out/tray.gcode.3mf`: M2.5 self-tapping screws. About 16 minutes, 11 g. Both on 3 mm standoffs.
+- `out/tray_snap.gcode.3mf`: screwless. Pins go through the 4 corner holes and 4 clips hold the board. About 29 minutes, 12 g.
+- `out/tray.gcode.3mf`: M2.5 self-tapping screws. About 27 minutes, 12 g. Both on 3 mm standoffs, with two 19.5 mm pillars that pin the far edge of a Pi HAT stacked on the GPIO header.

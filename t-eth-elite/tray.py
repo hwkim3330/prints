@@ -33,6 +33,14 @@ CLIP_DEPTH = 4.6
 LIP = 0.9
 # (wall, position along it); the +X edge is taken by the USB-C and the ESP32-S3 module's antenna
 CLIPS = [("-y", -12.0), ("-y", 12.0), ("+y", -18.0), ("-x", 15.0)]
+# Raspberry Pi HAT on the GPIO header: its header-side holes land on the board's (28.23, -19.97) and
+# (-29.77, -19.97) holes, so its far holes sit 49 mm further +Y, past the board edge. Two pillars hold
+# that edge up; HAT_GAP = board top to HAT underside (2.5 mm male header plastic + two stacked 8.5 mm female headers = 19.5 mm).
+HAT = True
+HAT_GAP = 19.5
+HAT_HOLES = [(-29.77, 29.03), (28.23, 29.03)]
+HAT_POST_D = 7.0
+HAT_PIN_D = 2.4       # into the HAT's 2.75 mm holes
 
 IW, IH = BW + 2 * CLEAR, BH + 2 * CLEAR
 OW, OH = IW + 2 * WALL, IH + 2 * WALL
@@ -57,6 +65,13 @@ def tray(snap=False):
     body = body.cut(cut_box(-2.0, 26.0, IH / 2 - 1, big, FLOOR + 1.0, WALL_H + 1))
     posts = cq.Workplane("XY").workplane(offset=FLOOR).pushPoints(HOLES).circle(STANDOFF_D / 2).extrude(STANDOFF_H)
     body = body.union(posts)
+    if HAT:  # pillars under the far edge of a Pi HAT, pins into its two far holes
+        hz = WALL_H + HAT_GAP
+        for x, y in HAT_HOLES:
+            body = body.union(cq.Workplane("XY").circle(HAT_POST_D / 2).extrude(hz).translate((x, y, 0)))
+            body = body.union(cut_box(x - 2, x + 2, IH / 2, y, 0, WALL_H))  # rib back to the wall
+            body = body.union(cq.Workplane("XY").workplane(offset=hz).center(x, y).circle(HAT_PIN_D / 2)
+                              .extrude(PCB_T + 0.8).faces(">Z").edges().chamfer(0.5))
     if not snap:
         return body.cut(cq.Workplane("XY").workplane(offset=FLOOR + 1).pushPoints(HOLES)
                         .circle(HOLE_D / 2).extrude(STANDOFF_H))
