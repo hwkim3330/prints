@@ -17,3 +17,8 @@ Not yet test-fitted on a real board (standoff height vs. pins under the board, M
 Bambu Lab A1 cable holder by its MakerWorld author (model 119194, CC BY-NC). It snaps onto the A1 above the X axis.
 https://makerworld.com/en/models/119194
 The STL comes from the public preview mesh. It is sliced to match the author's profile: 3 walls, 15% infill, no supports. It takes about 39 minutes and 16 g.
+
+## t-eth-elite
+Open-top tray for the LILYGO T-ETH Elite (ESP32-S3 + W5500 + PoE). The board geometry comes from LILYGO's official 3D model. The RJ45, USB-C, BOOT/RST buttons and microSD slot are all left open.
+- `out/tray_snap.gcode.3mf`: screwless. Pins go through the 4 corner holes and 4 clips hold the board. About 22 minutes, 12 g.
+- `out/tray.gcode.3mf`: M2.5 self-tapping screws. About 18 minutes, 12 g.
