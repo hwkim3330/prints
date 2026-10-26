@@ -5,8 +5,8 @@ six M2.5 holes (R1.35): 125 mil from the edges at the four corners, plus two on 
 450 and 1050 mil from the left. Top edge = Curiosity Nano USB end; the battery slide switch sits
 in the notch at the top right, the JST-PH battery plug next to it.
 
-The board screws onto 8 mm standoffs (M2.5 self-tapping, or 3.5 mm heat inserts with INSERT=True),
-which leaves room under the board for header pins and a flat LiPo (up to ~5 mm). The top short
+The board screws onto 4 mm standoffs (M2.5 self-tapping, or 3.5 mm heat inserts with INSERT=True),
+which leaves room under the board for the through-hole header pins. The top short
 edge is left open so the USB cable, switch and battery plug stay reachable; the long walls stop
 at the PCB top surface so Click boards and the Xplained Pro header are free.
 
@@ -29,7 +29,7 @@ PCB_T = 1.6
 CLEAR = 0.5           # gap board <-> wall
 WALL = 2.0
 FLOOR = 2.0
-STANDOFF_H = 8.0
+STANDOFF_H = 4.0
 STANDOFF_D = 6.0
 INSERT = False        # True: 3.5 mm holes for M2.5 heat inserts
 HOLE_D = 3.5 if INSERT else 2.2
@@ -37,7 +37,7 @@ OPEN_TOP_EDGE = True
 PIN_D = 2.3           # snap variant: pin through the 2.7 mm holes
 CLIP_W = 10.0         # snap variant: flex clip width, slot either side
 CLIP_SLOT = 1.0
-CLIP_DEPTH = 8.0      # how far down the slots run (clip flex length)
+CLIP_DEPTH = 5.6      # how far down the slots run (clip flex length)
 LIP = 0.9             # how far the clip lip reaches over the PCB edge
 CLIP_YS = (24.0, -40.0)  # clip centres along the long walls (clear of the finger notch)
 

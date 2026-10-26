@@ -5,7 +5,7 @@ coordinates (board centred, mm): PCB 66.2 x 49.2 x 1.6, four 2.5 mm holes near t
 -X edge: RJ45 (overhangs the edge by 5 mm and sits 1.4 mm below the PCB), +X edge: USB-C,
 +Y edge: BOOT/RST side buttons on top and the microSD slot underneath, -Y edge: GPIO header.
 
-The board sits on 5 mm standoffs (room for the microSD socket and the RJ45 underneath); walls stop
+The board sits on 3 mm standoffs (the microSD socket hangs 2.1 mm under the PCB, the RJ45 1.4 mm); walls stop
 at the PCB top surface. Snap version (out/tray_snap.stl): pins through the corner holes and four flex
 clips over the PCB edge, press it in; screw version (out/tray.stl): M2.5 self-tapping into the standoffs.
 
@@ -23,13 +23,13 @@ PCB_T = 1.6
 CLEAR = 0.5
 WALL = 2.0
 FLOOR = 2.0
-STANDOFF_H = 5.0
+STANDOFF_H = 3.0
 STANDOFF_D = 5.0
 HOLE_D = 2.2          # M2.5 self-tapping
 PIN_D = 2.2           # snap variant: pin through the 2.5 mm holes
 CLIP_W = 10.0
 CLIP_SLOT = 1.0
-CLIP_DEPTH = 6.0
+CLIP_DEPTH = 4.6
 LIP = 0.9
 # (wall, position along it); the +X edge is taken by the USB-C and the ESP32-S3 module's antenna
 CLIPS = [("-y", -12.0), ("-y", 12.0), ("+y", -18.0), ("-x", 15.0)]
