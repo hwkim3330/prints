@@ -9,7 +9,7 @@ The board sits on 3 mm standoffs (the microSD socket hangs 2.1 mm under the PCB,
 at the PCB top surface. Snap version (out/tray_snap.stl): pins through the corner holes and four flex
 clips over the PCB edge, press it in; screw version (out/tray.stl): M2.5 self-tapping into the standoffs.
 
-Run:  uv run --with cadquery python tray.py   ->  out/tray.stl, out/tray_snap.stl, out/frames.stl
+Run:  uv run --with cadquery python tray.py   ->  out/tray.stl, out/tray_snap.stl, out/tray_pins.stl, out/frames.stl
 """
 import os
 import cadquery as cq
@@ -64,7 +64,7 @@ def cut_box(x0, x1, y0, y1, z0, z1):
     return cq.Workplane("XY").box(x1 - x0, y1 - y0, z1 - z0, centered=False).translate((x0, y0, z0))
 
 
-def tray(snap=False):
+def tray(snap=False, clips=True):
     body = cq.Workplane("XY").box(OW, OH, WALL_H, centered=(True, True, False)).edges("|Z").fillet(3)
     body = body.cut(cq.Workplane("XY").workplane(offset=FLOOR).box(IW, IH, WALL_H, centered=(True, True, False))
                     .edges("|Z").fillet(1.5))
@@ -90,6 +90,8 @@ def tray(snap=False):
     pins = (cq.Workplane("XY").workplane(offset=PCB_Z).pushPoints(HOLES)
             .circle(PIN_D / 2).extrude(PCB_T + 0.8).faces(">Z").edges().chamfer(0.5))
     body = body.union(pins)
+    if not clips:  # pins only: the board just drops on
+        return body
     top = WALL_H
     z0 = top + 0.15
     for wall, p in CLIPS:
@@ -160,4 +162,5 @@ if __name__ == "__main__":
         cq.exporters.export(frames(), os.path.join(OUT, "frames.stl"))
     cq.exporters.export(tray(), os.path.join(OUT, "tray.stl"))
     cq.exporters.export(tray(snap=True), os.path.join(OUT, "tray_snap.stl"))
+    cq.exporters.export(tray(snap=True, clips=False), os.path.join(OUT, "tray_pins.stl"))
     print(f"tray {OW:.1f} x {OH:.1f} x {WALL_H:.1f} mm, PCB underside at z={PCB_Z}")
