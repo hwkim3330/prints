@@ -59,9 +59,6 @@ def tray():
     body = body.union(posts)
     body = body.cut(cq.Workplane("XY").workplane(offset=FLOOR + 1).pushPoints(pts)
                     .circle(HOLE_D / 2).extrude(STANDOFF_H))
-    # vent / cable slots in the floor and a recessed label
-    for i in range(-3, 4):
-        body = body.cut(cq.Workplane("XY").center(i * 9, -8).slot2D(40, 4, 90).extrude(FLOOR))
     return body
 
 
