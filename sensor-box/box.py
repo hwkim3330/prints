@@ -21,7 +21,8 @@ import numpy as np
 import trimesh
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-OUT = os.path.join(HERE, "out")
+VERSION = "v3"                  # output folder; bump it for a new version and keep the old ones
+OUT = os.path.join(HERE, VERSION)
 os.makedirs(OUT, exist_ok=True)
 
 L = 120.0                       # hexagon side = circumradius (240 across corners)
