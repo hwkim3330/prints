@@ -27,7 +27,7 @@ Note: the M2 holes (34.1 × 29.0, symmetric on the red holder) sit right beside 
 | `v5/body.gcode.3mf` | Body (one piece, 0.24 mm layers) | **about 8 h** | 365 g |
 | `v5/rail_bars_x2.gcode.3mf` | Rail bars ×2 (after the robot arrives) | 1 h 20 m | 59 g |
 
-- **Paper check (no printing):** print [v5/cam_template_A4.pdf](v5/cam_template_A4.pdf) on A4 at 100 % (actual size) and lay the camera on it to check the hole positions and opening. Check the 100 mm bar with a ruler first.
+- **Paper check (no printing):** [v5/cam_template_A4.pdf](v5/cam_template_A4.pdf) has the four variants below on one A4 sheet, numbered 1-4 at 1:1 (made by `cam_template.py`). Print it at 100 % (actual size), check the 100 mm bar with a ruler, and lay the camera on each one.
 - **Or pick from four:** `v5/cam_test_variants.gcode.3mf` (52 min) puts four test pieces on one plate. Count the small holes in a corner to tell them apart:
   1. M2 centres 34.1 × 29.0, opening up 2.39 mm (= v5)
   2. 33.0 × 27.9, up 2.39
