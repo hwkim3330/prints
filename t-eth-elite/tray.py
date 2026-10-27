@@ -47,7 +47,8 @@ HAT_BOSS_D = 10.0
 # Everything on the frame is square so every part of it sits flat on the bed (round pins laid down
 # touched it along a <1 mm line and the first print came loose there).
 LEG_W = 8.0
-HAT_POST_S = 7.0      # square pillar (the simple alternative to the frame: out/pillars.stl)
+HAT_POST_S = 7.0      # pillar depth (the simple alternative to the frame: out/pillars.stl)
+HAT_POST_W = 9.0      # pillar width = its face on the bed
 FRAME_T = 5.0         # frame thickness (Y), from FLAT below the hole axis
 BRIDGE_H = 6.0
 GUSSET = 4.0
@@ -81,8 +82,12 @@ def tray(snap=False, clips=True):
     posts = cq.Workplane("XY").workplane(offset=FLOOR).pushPoints(HOLES).circle(STANDOFF_D / 2).extrude(STANDOFF_H)
     body = body.union(posts)
     if HAT:  # bosses under the HAT's far holes, flush with the board top, with a socket for a frame leg
+        # one plain rectangle of floor under the tray and both bosses: no ears sticking out on the bed
+        y1 = HAT_HOLES[0][1] + HAT_POST_S - FLAT       # out to the pillar's outer face
+        body = body.union(cq.Workplane("XY").box(OW, y1 + OH / 2, FLOOR, centered=False)
+                          .translate((-OW / 2, -OH / 2, 0)).edges("|Z").fillet(3))
         for x, y in HAT_HOLES:
-            body = body.union(cq.Workplane("XY").circle(HAT_BOSS_D / 2).extrude(WALL_H).translate((x, y, 0)))
+            body = body.union(cut_box(x - HAT_BOSS_D / 2, x + HAT_BOSS_D / 2, IH / 2, y1, 0, WALL_H))  # clear of the PCB
             body = body.union(cut_box(x - 3, x + 3, IH / 2, y, 0, WALL_H))  # tie it to the wall
             body = body.cut(cq.Workplane("XY").workplane(offset=WALL_H - PEG_L - 0.5).center(x, y)
                             .circle(PEG_SOCKET_D / 2).extrude(PEG_L + 1).faces(">Z").edges().chamfer(0.4))
@@ -155,7 +160,7 @@ def frame(gap, marks):
 def pillar(gap):
     """Square pillar: boss top -> HAT underside is exactly `gap`. The body is offset outwards so its
     bed face is flush with the square pin's and peg's, then it is laid on that face."""
-    hw = HAT_POST_S / 2
+    hw = HAT_POST_W / 2
     p = cut_box(-hw, hw, -FLAT, HAT_POST_S - FLAT, 0, gap)
     p = p.union(cq.Workplane("XY").workplane(offset=gap).rect(HAT_PIN_S, HAT_PIN_S)
                 .extrude(PCB_T + 0.8).faces(">Z").edges().chamfer(0.4))
