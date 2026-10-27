@@ -9,7 +9,7 @@ The board sits on 3 mm standoffs (the microSD socket hangs 2.1 mm under the PCB,
 at the PCB top surface. Snap version (out/tray_snap.stl): pins through the corner holes and four flex
 clips over the PCB edge, press it in; screw version (out/tray.stl): M2.5 self-tapping into the standoffs.
 
-Run:  uv run --with cadquery python tray.py   ->  out/tray.stl, out/tray_snap.stl, out/tray_pins.stl, out/frames.stl
+Run:  uv run --with cadquery python tray.py   ->  out/tray.stl, out/tray_snap.stl, out/tray_pins.stl, out/frames.stl, out/pillars.stl
 """
 import os
 import cadquery as cq
@@ -47,6 +47,7 @@ HAT_BOSS_D = 10.0
 # Everything on the frame is square so every part of it sits flat on the bed (round pins laid down
 # touched it along a <1 mm line and the first print came loose there).
 LEG_W = 8.0
+HAT_POST_S = 7.0      # square pillar (the simple alternative to the frame: out/pillars.stl)
 FRAME_T = 5.0         # frame thickness (Y), from FLAT below the hole axis
 BRIDGE_H = 6.0
 GUSSET = 4.0
@@ -151,6 +152,19 @@ def frame(gap, marks):
     return f.rotate((0, 0, 0), (1, 0, 0), 90).translate((0, 0, FLAT))
 
 
+def pillar(gap):
+    """Square pillar: boss top -> HAT underside is exactly `gap`. The body is offset outwards so its
+    bed face is flush with the square pin's and peg's, then it is laid on that face."""
+    hw = HAT_POST_S / 2
+    p = cut_box(-hw, hw, -FLAT, HAT_POST_S - FLAT, 0, gap)
+    p = p.union(cq.Workplane("XY").workplane(offset=gap).rect(HAT_PIN_S, HAT_PIN_S)
+                .extrude(PCB_T + 0.8).faces(">Z").edges().chamfer(0.4))
+    p = p.union(cq.Workplane("XY").workplane(offset=-PEG_L).rect(PEG_S, PEG_S)
+                .extrude(PEG_L + 0.5).faces("<Z").edges().chamfer(0.4))
+    p = p.cut(cut_box(-10, 10, -10, -FLAT, -PEG_L - 1, gap + 5))
+    return p.rotate((0, 0, 0), (1, 0, 0), 90).translate((0, 0, FLAT))
+
+
 def frames():
     out = cq.Workplane("XY")
     for i, g in enumerate(HAT_GAPS):
@@ -161,6 +175,8 @@ def frames():
 if __name__ == "__main__":
     if HAT:
         cq.exporters.export(frames(), os.path.join(OUT, "frames.stl"))
+        cq.exporters.export(pillar(HAT_GAP).union(pillar(HAT_GAP).translate((HAT_POST_S + 6, 0, 0))),
+                            os.path.join(OUT, "pillars.stl"))
     cq.exporters.export(tray(), os.path.join(OUT, "tray.stl"))
     cq.exporters.export(tray(snap=True), os.path.join(OUT, "tray_snap.stl"))
     cq.exporters.export(tray(snap=True, clips=False), os.path.join(OUT, "tray_pins.stl"))
