@@ -28,6 +28,13 @@ Note: the M2 holes (34.1 × 29.0, symmetric on the red holder) sit right beside 
 | `v5/rail_bars_x2.gcode.3mf` | Rail bars ×2 (after the robot arrives) | 1 h 20 m | 59 g |
 
 - **Paper check (no printing):** print [v5/cam_template_A4.pdf](v5/cam_template_A4.pdf) on A4 at 100 % (actual size) and lay the camera on it to check the hole positions and opening. Check the 100 mm bar with a ruler first.
+- **Or pick from four:** `v5/cam_test_variants.gcode.3mf` (52 min) puts four test pieces on one plate. Count the small holes in a corner to tell them apart:
+  1. M2 centres 34.1 × 29.0, opening up 2.39 mm (= v5)
+  2. 33.0 × 27.9, up 2.39
+  3. 31.9 × 26.8 (the caliper reading taken as centre distance), up 2.39
+  4. 34.1 × 29.0, opening centred
+
+  Tell me which one fits and I'll set it in the body.
 - **Camera test first:** fit the real camera into it. The clear housing goes out through the opening, the red holder drops into the pocket, and 4 × M2 go in from outside.
 - **Body:** it takes about 8 hours, so start it in the morning and wash the bed plate first.
 - **Rail bars:** print them after the robot arrives. The body doesn't depend on the rails.
