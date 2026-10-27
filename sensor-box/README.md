@@ -14,7 +14,13 @@ One-piece hexagonal box for the Bambu Lab A1, PLA, open top. One camera per face
 | `out/cam_plates_x6.gcode.3mf` | Camera plates ×6 | 0.2 mm | 1 h 07 m | 36 g |
 | `out/rail_bars_x2.gcode.3mf` | Rail bars ×2 | 0.2 mm | 1 h 20 m | 59 g |
 
-- **Before the body:** the camera test (camera plate + wall piece, 25 minutes) is in `scout-mini-sensor-box/rev10p/out/print/cam_test.gcode.3mf`. Run it first, and wash the plate before the 8-hour print.
+- **Before the body:** run `out/cam_test.gcode.3mf` (25 minutes, 14 g). It prints **two pieces**:
+  - a **piece of wall** (66 × 61 × 4) cut out around the window, the same thickness as the body's camera pad
+  - **one camera plate**
+
+  Fit the real camera into them to check the red holder in the window, the clear housing through the plate, and the 4 M2 screws. If it fits, the body and the 6 plates will too. Wash the plate before the 8-hour print.
+
+  ![Camera test](out/cam_test.png)
 - **Rail bars:** print them after the robot arrives and the rail spacing is measured. The body doesn't depend on the rails. The bars bolt to it with M4 through fixed holes in the floor.
 
 ## Body design
