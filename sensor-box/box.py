@@ -22,7 +22,7 @@ import numpy as np
 import trimesh
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-VERSION = "v7"                  # output folder; bump it for a new version and keep the old ones
+VERSION = "v8"                  # output folder; bump it for a new version and keep the old ones
 OUT = os.path.join(HERE, VERSION)
 os.makedirs(OUT, exist_ok=True)
 
@@ -59,6 +59,8 @@ VENT_W, VENT_H, VENT_PITCH, VENT_Z, VENT_N = 5.0, 24.0, 10.0, 18.0, 7
 # high vents between the camera pads and the top lip: exhaust even with a plate on top
 VENT_HI_X, VENT_HI_Z, VENT_HI_H = (-43.0, -33.0, 33.0, 43.0), 115.5, 8.0
 CABLE_NOTCH = 20.0             # slot below the red holder's pocket for the camera cable
+RIBBON = (18.0, 0.8)           # channel for the ribbon that leaves between the clear housing and the red
+                               # holder: from the opening's lower edge down to the slot, so it is not pinched
 
 # floor
 GRID = 20.0
@@ -162,6 +164,10 @@ def camera_mount(b, place):
     # cable slot from the pocket down through the pad's lower edge
     b = b.cut(place(cq.Workplane("XY").workplane(offset=CAM_T).center(0, cz - CAM_WIN[1] / 2 - 5)
                     .rect(CABLE_NOTCH, 10).extrude(PAD[2])))
+    top = cz + CLEAR_DY - CAM_CUT[1] / 2 + 0.5          # just inside the opening's lower edge
+    bot = cz - CAM_WIN[1] / 2 - 10
+    b = b.cut(place(cq.Workplane("XY").workplane(offset=CAM_T - RIBBON[1]).center(0, (top + bot) / 2)
+                    .rect(RIBBON[0], top - bot).extrude(RIBBON[1] + 0.01)))
     b = b.cut(place(cq.Workplane("XY").workplane(offset=CAM_T).center(0, cz).rect(*CAM_WIN)
                     .extrude(PAD[2]).edges("|Z").fillet(1)))
     b = b.cut(place(cq.Workplane("XY").center(0, cz + CLEAR_DY).rect(*CAM_CUT).extrude(PAD[2] + 2)
