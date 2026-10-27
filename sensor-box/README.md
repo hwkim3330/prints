@@ -67,5 +67,5 @@ Note: the M2 holes (34.1 × 29.0, symmetric on the red holder) sit right beside 
 |---|---|---|
 | Camera → body | M2 × 6 (pan or button head) | 24 |
 | Body ↔ rail bar | M4 × 12–16 + nut (the nuts sit in hex pockets in the bar) | 8 |
-| Rail bar → robot rail | M5 + rail slider nut, rail spacing **HOLD** (slots take ±12 mm) | 4 |
+| Rail bar → robot rail | M5 + rail slider nut, rail spacing **HOLD** (closed 18 mm slots take rail spacings 206–242 mm) | 4 |
 | (Later) lid → corner columns | M3 self-tapping | 6 |

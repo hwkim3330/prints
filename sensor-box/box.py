@@ -66,7 +66,7 @@ AGX_C = (0.0, 0.0)              # centred: even cable room all round, holes clea
 AGX_SO = [(AGX_C[0] + sx * 45, AGX_C[1] + sy * 45) for sx in (-1, 1) for sy in (-1, 1)]
 AGX_BOX = (110.0, 110.0, 72.0)
 
-# rail bars (HOLD: rail pitch, the slots take +-12 mm)
+# rail bars (HOLD: rail pitch; closed slots take rail spacings 206..242 mm)
 RAIL_X = 115.0                  # nominal half rail spacing (HOLD)
 RAIL_SLOT_C = 112.0             # slot centre: closed slots ending 3 mm inside the bar, they take rail
 RAIL_SLOT = (5.5, 18.0)         # spacings 206..242 mm (the old 24 mm slot broke out of the bar end)
