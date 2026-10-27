@@ -14,26 +14,22 @@ One-piece hexagonal box for the Bambu Lab A1, PLA, open top. One camera per face
 | [v1](v1/) | Hexagon with everything: 2.8 mm walls, corner columns, 45° floor fillet and top lip, camera pads, vents, floor holes | 9 h 02 m / 371 g (0.2 mm) | [body](v1/body.stl) |
 | [v2](v2/) | 2.5 mm walls (exactly 6 lines, no gap fill), smaller columns, 0.24 mm layers | 8 h 02 m / 360 g | [body](v2/body.stl) · [assembly](v2/assembly.stl) |
 | [v3](v3/) | Camera test fit the real camera; camera plate opening made square | body same as v2 | [body](v3/body.stl) · [camera plate](v3/cam_plate.stl) |
-| **[v4](v4/)** (current) | The clear housing is flush with the red holder's top edge (the cable is at the bottom), so the plate opening moves up 2.39 mm. The M2 holes stay symmetric on the red holder. Now the two lower holes are full circles; the two upper ones still touch the opening because they sit right beside the clear housing | body same as v2 | [camera plate](v4/cam_plate.stl) · [assembly](v4/assembly.stl) |
+| [v4](v4/) | The clear housing is flush with the red holder's top edge (the cable is at the bottom), so the plate opening moves up 2.39 mm. The M2 holes stay symmetric on the red holder. Now the two lower holes are full circles; the two upper ones still touch the opening because they sit right beside the clear housing | body same as v2 | [camera plate](v4/cam_plate.stl) · [assembly](v4/assembly.stl) |
+| **[v5](v5/)** (current) | **Simpler: no camera plates.** The camera mounts straight on the wall. The clear housing goes out through an opening in the wall, the red holder sits in a 1 mm pocket inside a 4 mm pad, and 4 × M2 × 6 go from outside into the red holder. That removes 6 plates and 24 M3 screws | 7 h 57 m / 365 g | [body](v5/body.stl) · [camera test](v5/cam_test.stl) · [assembly](v5/assembly.stl) |
 
 Note: the M2 holes (34.1 × 29.0, symmetric on the red holder) sit right beside the clear housing. Since v4 only the upper two cut into the opening.
 
-## Print
+## Print (v5)
 
-| File | Part | Settings | Time | PLA |
-|---|---|---|---|---|
-| `v4/body.gcode.3mf` | Body (one piece) | 0.24 mm layers, 3 walls | **about 8 h** | 360 g |
-| `v4/cam_plates_x6.gcode.3mf` | Camera plates ×6 | 0.2 mm | 1 h 07 m | 36 g |
-| `v4/rail_bars_x2.gcode.3mf` | Rail bars ×2 | 0.2 mm | 1 h 20 m | 59 g |
+| File | Part | Time | PLA |
+|---|---|---|---|
+| `v5/cam_test.gcode.3mf` | Camera test: the wall's camera mount cut out as one small piece | 13 m | 7 g |
+| `v5/body.gcode.3mf` | Body (one piece, 0.24 mm layers) | **about 8 h** | 365 g |
+| `v5/rail_bars_x2.gcode.3mf` | Rail bars ×2 (after the robot arrives) | 1 h 20 m | 59 g |
 
-- **Before the body:** run `v4/cam_test.gcode.3mf` (25 minutes, 14 g). It prints **two pieces**:
-  - a **piece of wall** (66 × 61 × 4) cut out around the window, the same thickness as the body's camera pad
-  - **one camera plate**
-
-  Fit the real camera into them to check the red holder in the window, the clear housing through the plate, and the 4 M2 screws. If it fits, the body and the 6 plates will too. Wash the plate before the 8-hour print.
-
-  ![Camera test](v3/cam_test.png)
-- **Rail bars:** print them after the robot arrives and the rail spacing is measured. The body doesn't depend on the rails. The bars bolt to it with M4 through fixed holes in the floor.
+- **Camera test first:** fit the real camera into it. The clear housing goes out through the opening, the red holder drops into the pocket, and 4 × M2 go in from outside.
+- **Body:** it takes about 8 hours, so start it in the morning and wash the bed plate first.
+- **Rail bars:** print them after the robot arrives. The body doesn't depend on the rails.
 
 ## Body design
 
@@ -48,19 +44,18 @@ Note: the M2 holes (34.1 × 29.0, symmetric on the red holder) sit right beside 
   - A 0.5 mm chamfer on the first layer to prevent elephant foot.
 - **Vents:** 7 slots low on each face for intake; the open top is the exhaust.
 
-## Camera mounting (measured)
+## Camera mounting (measured, v5)
 
-- **Red holder** (40.16 × 35.03 × 3.51) fits in the 41 × 36 wall window.
-- **Clear housing** (31.74 × 30.25, 10.9 mm tall) goes out through the camera plate opening.
-- **Screws:** M2 × 6 from outside, at 34.1 × 29.0 (a caliper reading of 31.90 × 26.8 plus a hole diameter of 2.2). **The camera test fit on the real camera (2026-10-27)**; mind which way the camera faces when fitting it. The plate opening has square corners.
-- **Plate to body:** M3 self-tapping, 4 per camera.
-- The code checks the camera dummies against the body and plates: no collisions.
+- **Red holder** (40.16 × 35.03 × 3.51) sits in a 1 mm pocket (41 × 36) on the inside of the wall. The wall is 4 mm thick there, and 3 mm at the opening.
+- **Clear housing** (31.74 × 30.25, 10.9 tall) is flush with the red holder's top edge (the cable is at the bottom). It goes out through a 32.3 × 30.8 opening that sits 2.39 mm above centre, so about 7.9 mm shows outside.
+- **Screws:** M2 × 6, four per camera, from outside through the wall into the red holder. Holes at 34.1 × 29.0, symmetric on the red holder.
+- The code checks the camera dummies against the body: no collisions.
 
-## Screws
+## Screws (v5)
 
-| Joint | Screw |
-|---|---|
-| Camera → plate | M2 × 6 (24) |
-| Plate → body | M3 self-tapping (24) |
-| Body ↔ rail bar | M4 + nut, the nuts sit in hex pockets in the bar (8) |
-| Rail bar → robot rail | M5 + rail slider nut (4), rail spacing **HOLD** (slots take ±12 mm) |
+| Joint | Screw | Qty |
+|---|---|---|
+| Camera → body | M2 × 6 (pan or button head) | 24 |
+| Body ↔ rail bar | M4 × 12–16 + nut (the nuts sit in hex pockets in the bar) | 8 |
+| Rail bar → robot rail | M5 + rail slider nut, rail spacing **HOLD** (slots take ±12 mm) | 4 |
+| (Later) lid → corner columns | M3 self-tapping | 6 |

@@ -3,11 +3,12 @@
 Body: hexagon 240 mm across corners (fits the 256 mm bed), 208 across flats, 130 tall, 2.5 mm walls,
 3.2 mm floor, 45 deg fillets at the floor and a 45 deg lip at the top, printed floor-down without supports in one ~5 h job. One camera per face (60 deg apart).
 Corner columns inside stiffen the walls and carry pilot holes for a lid later (lidar not decided).
-Rail bars and camera plates are separate small prints.
+Rail bars are a separate small print.
 
 Camera (measured): red holder 40.16 x 35.03 x 3.51 sits in the wall window, the clear housing
-31.74 x 30.25 (10.9 proud, flush with the red holder's top edge) goes through the outer camera plate, M2 screws at 34.1 x 29.0 from outside.
-Around each window the wall is thickened to 4 mm inside so the plate's M3 screws have something to bite.
+31.74 x 30.25 (10.9 proud, flush with the red holder's top edge) goes out through the wall, M2 screws at 34.1 x 29.0 from outside.
+The camera mounts straight on the wall: the red holder sits in a 1 mm pocket inside a 4 mm pad, the
+clear housing goes out through an opening, 4 x M2 x 6 from outside. No separate plates.
 
 Design source: github.com/hwkim3330/scout-mini-sensor-box (REV9 sheet-metal box, rev10p panel version).
 Run:  uv run --with cadquery --with trimesh --with numpy --with scipy --with networkx --with manifold3d \\
@@ -21,7 +22,7 @@ import numpy as np
 import trimesh
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-VERSION = "v4"                  # output folder; bump it for a new version and keep the old ones
+VERSION = "v5"                  # output folder; bump it for a new version and keep the old ones
 OUT = os.path.join(HERE, VERSION)
 os.makedirs(OUT, exist_ok=True)
 
@@ -42,9 +43,10 @@ CAM_Z = 92.0
 RED = (40.16, 35.03, 3.51)
 CLEARP = (31.74, 30.25, 10.9)
 CAM_WIN = (RED[0] + 0.8, RED[1] + 0.8)
-PAD = (64.0, 59.0, 4.0)         # wall thickened to 4 mm around the window, inside
-CAM_PLATE = (60.0, 55.0, 3.0)
-CAM_SCREWS = [(sx * 24.0, sz * 22.0) for sx in (-1, 1) for sz in (-1, 1)]
+# The camera mounts straight on the wall (no separate plate): the clear housing goes out through an
+# opening, the red holder sits in a 1 mm pocket on the inside, 4 x M2 x 6 from outside into the red holder.
+PAD = (CAM_WIN[0] + 8, CAM_WIN[1] + 8, 4.0)   # wall thickened to 4 mm around the camera, inside
+CAM_T = 3.0                     # wall left at the opening; the pocket is the last PAD[2] - CAM_T
 CAM_CUT = (CLEARP[0] + 0.6, CLEARP[1] + 0.6)
 CLEAR_DY = (RED[1] - CLEARP[1]) / 2   # the clear housing is flush with the red holder's top edge (cable side down)
 M2_PITCH = (31.90 + 2.2, 26.8 + 2.2)
@@ -117,14 +119,7 @@ def body():
         b = b.union(on_face(i, foot)).union(on_face(i, lip))
     b = b.faces("<Z").edges().chamfer(0.5)              # no elephant foot on the first layer
     for i in range(6):
-        cz = CAM_Z
-        pad = cq.Workplane("XY").center(0, cz).rect(PAD[0], PAD[1]).extrude(PAD[2])
-        b = b.union(on_face(i, pad))
-        win = cq.Workplane("XY").center(0, cz).rect(*CAM_WIN).extrude(PAD[2] + 2).translate((0, 0, -1)).edges("|Z").fillet(1)
-        b = b.cut(on_face(i, win))
-        for sx, sz in CAM_SCREWS:
-            b = b.cut(on_face(i, cq.Workplane("XY").center(sx, cz + sz).circle(PILOT / 2).extrude(PAD[2] + 2)
-                              .translate((0, 0, -1))))
+        b = camera_mount(b, lambda wp: on_face(i, wp))
         for j in range(VENT_N):
             x = (j - (VENT_N - 1) / 2) * VENT_PITCH
             v = (cq.Workplane("XY").center(x, VENT_Z + VENT_H / 2).rect(VENT_W, VENT_H).extrude(WALL + 2)
@@ -143,6 +138,26 @@ def body():
     return b.cut(cq.Workplane("XY").pushPoints(bolts).circle(M4 / 2).extrude(FLOOR))
 
 
+def camera_mount(b, place):
+    """Pad, pocket for the red holder, opening for the clear housing and M2 holes, in face-local
+    coordinates (XY on the outer face, +Z inwards) mapped by `place`."""
+    cz = CAM_Z
+    b = b.union(place(cq.Workplane("XY").center(0, cz).rect(PAD[0], PAD[1]).extrude(PAD[2])))
+    b = b.cut(place(cq.Workplane("XY").workplane(offset=CAM_T).center(0, cz).rect(*CAM_WIN)
+                    .extrude(PAD[2]).edges("|Z").fillet(1)))
+    b = b.cut(place(cq.Workplane("XY").center(0, cz + CLEAR_DY).rect(*CAM_CUT).extrude(PAD[2] + 2)
+                    .translate((0, 0, -1))))
+    return b.cut(place(cq.Workplane("XY").pushPoints([(x, cz + y) for x, y in M2_HOLES]).circle(M2_CLEAR / 2)
+                       .extrude(PAD[2] + 2).translate((0, 0, -1))))
+
+
+def cam_test():
+    """The camera mount cut out of a 4 mm wall piece, printed outer face down: fit the camera before the body."""
+    w = PAD[0] + 10
+    t = cq.Workplane("XY").center(0, CAM_Z).rect(w, PAD[1] + 10).extrude(WALL)
+    return camera_mount(t, lambda wp: wp)
+
+
 def rail_bar():
     b = cq.Workplane("XY").box(*BAR, centered=(True, True, False)).edges("|Z").fillet(4)
     b = b.cut(cq.Workplane("XY").pushPoints([(x, 0) for x in BAR_BOLTS_X]).circle(M4 / 2).extrude(BAR[2]))
@@ -150,14 +165,6 @@ def rail_bar():
     for sx in (-1, 1):
         b = b.cut(cq.Workplane("XY").center(sx * RAIL_X, 0).slot2D(RAIL_SLOT[1], RAIL_SLOT[0]).extrude(BAR[2]))
     return b
-
-
-def cam_plate():
-    w, h, t = CAM_PLATE
-    p = cq.Workplane("XY").box(w, h, t, centered=(True, True, False)).edges("|Z").fillet(4)
-    p = p.cut(cq.Workplane("XY").pushPoints(CAM_SCREWS).circle(CLEAR3 / 2).extrude(t))
-    p = p.cut(cq.Workplane("XY").center(0, CLEAR_DY).rect(*CAM_CUT).extrude(t))   # square corners; M2 holes stay on the red holder's centre
-    return p.cut(cq.Workplane("XY").pushPoints(M2_HOLES).circle(M2_CLEAR / 2).extrude(t))
 
 
 def mesh(wp):
@@ -169,16 +176,16 @@ def mesh(wp):
 
 
 def camera_dummy(i):
-    """Red holder in the window + clear housing standing out through the plate, for clearance checks."""
-    red = cq.Workplane("XY").center(0, CAM_Z).rect(RED[0], RED[1]).extrude(RED[2]).translate((0, 0, 0.3))
-    clr = cq.Workplane("XY").center(0, CAM_Z + CLEAR_DY).rect(CLEARP[0], CLEARP[1]).extrude(CLEARP[2]).translate((0, 0, 0.3 - CLEARP[2]))
+    """Red holder in its pocket + clear housing standing out through the wall, for clearance checks."""
+    red = cq.Workplane("XY").center(0, CAM_Z).rect(RED[0], RED[1]).extrude(RED[2]).translate((0, 0, CAM_T + 0.05))
+    clr = (cq.Workplane("XY").center(0, CAM_Z + CLEAR_DY).rect(CLEARP[0], CLEARP[1]).extrude(CLEARP[2])
+           .translate((0, 0, CAM_T + 0.05 - CLEARP[2])))
     return mesh(on_face(i, red)), mesh(on_face(i, clr))
 
 
 if __name__ == "__main__":
     bm = mesh(body())
     rb = mesh(rail_bar())
-    cp = mesh(cam_plate())
     assy = [("body", bm)]
     for sy in (-1, 1):
         b = rb.copy()
@@ -186,16 +193,9 @@ if __name__ == "__main__":
         assy.append(("bar", b))
     probs = 0
     for i in range(6):
-        c = cp.copy()
-        m = face(i)
-        rot = np.eye(4)
-        rot[:3, :3] = m[:3, :3]
-        c.apply_transform(rot)
-        c.apply_translation((m @ np.array([0, CAM_Z, -CAM_PLATE[2], 1.0]))[:3])
-        assy.append(("cam", c))
         red, clr = camera_dummy(i)
         for n, part in (("red holder", red), ("clear housing", clr)):
-            for other in (bm, c):
+            for other in (bm,):
                 v = trimesh.boolean.intersection([part, other], engine="manifold").volume
                 if v > 0.5:
                     print(f"  camera {i} {n} hits a part: {v:.1f} mm3")
@@ -208,7 +208,7 @@ if __name__ == "__main__":
         probs += 1
     print("clearance problems:", probs)
 
-    for name, m in (("body", bm), ("rail_bar", rb), ("cam_plate", cp)):
+    for name, m in (("body", bm), ("rail_bar", rb), ("cam_test", mesh(cam_test()))):
         e = m.extents
         print(f"{name:9s} {e[0]:6.1f} x {e[1]:6.1f} x {e[2]:5.1f}  watertight={m.is_watertight}")
         mm = m.copy()
@@ -220,7 +220,7 @@ if __name__ == "__main__":
     matplotlib.use("Agg")
     import matplotlib.pyplot as plt
     from mpl_toolkits.mplot3d.art3d import Poly3DCollection
-    col = {"body": "#d9a441", "bar": "#333333", "cam": "#c0392b", "camdummy": "#7fb3d5"}
+    col = {"body": "#d9a441", "bar": "#333333", "camdummy": "#c0392b"}
 
     def shade(m, c):
         k = np.clip(m.face_normals @ np.array([-.4, -.5, .8]), 0, 1) * 0.6 + 0.4
