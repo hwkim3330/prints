@@ -67,8 +67,9 @@ AGX_SO = [(AGX_C[0] + sx * 45, AGX_C[1] + sy * 45) for sx in (-1, 1) for sy in (
 AGX_BOX = (110.0, 110.0, 72.0)
 
 # rail bars (HOLD: rail pitch, the slots take +-12 mm)
-RAIL_X = 115.0
-RAIL_SLOT = (5.5, 24.0)
+RAIL_X = 115.0                  # nominal half rail spacing (HOLD)
+RAIL_SLOT_C = 112.0             # slot centre: closed slots ending 3 mm inside the bar, they take rail
+RAIL_SLOT = (5.5, 18.0)         # spacings 206..242 mm (the old 24 mm slot broke out of the bar end)
 BAR = (248.0, 30.0, 8.0)
 BAR_Y = 70.0                    # bars run under y 55..85, clear of the AGX holes (y +-45)
 BAR_BOLTS_X = (-60.0, -20.0, 20.0, 60.0)   # all inside the 45 deg floor fillet
@@ -181,7 +182,7 @@ def rail_bar():
     b = b.cut(cq.Workplane("XY").pushPoints([(x, 0) for x in BAR_BOLTS_X]).circle(M4 / 2).extrude(BAR[2]))
     b = b.cut(cq.Workplane("XY").pushPoints([(x, 0) for x in BAR_BOLTS_X]).polygon(6, 8.4).extrude(3.2))   # M4 nut 7.0 across flats; polygon() takes the corner diameter
     for sx in (-1, 1):
-        b = b.cut(cq.Workplane("XY").center(sx * RAIL_X, 0).slot2D(RAIL_SLOT[1], RAIL_SLOT[0]).extrude(BAR[2]))
+        b = b.cut(cq.Workplane("XY").center(sx * RAIL_SLOT_C, 0).slot2D(RAIL_SLOT[1], RAIL_SLOT[0]).extrude(BAR[2]))
     return b
 
 
