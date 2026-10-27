@@ -44,15 +44,17 @@ HAT_GAP = 19.5
 HAT_GAPS = (19.0, 19.5, 20.0)   # one frame each, marked with 1, 2, 3 holes in the bridge
 HAT_HOLES = [(-29.77, 29.03), (28.23, 29.03)]
 HAT_BOSS_D = 10.0
-LEG_W = 7.0
-FRAME_T = 5.0         # frame thickness (Y); the hole axis sits FLAT from its inner face
-BRIDGE_H = 4.0
+# Everything on the frame is square so every part of it sits flat on the bed (round pins laid down
+# touched it along a <1 mm line and the first print came loose there).
+LEG_W = 8.0
+FRAME_T = 5.0         # frame thickness (Y), from FLAT below the hole axis
+BRIDGE_H = 6.0
 GUSSET = 4.0
-HAT_PIN_D = 2.4       # into the HAT's 2.75 mm holes
-PEG_D = 4.0           # leg peg; socket is PEG_D + PEG_CLEAR
+HAT_PIN_S = 1.9       # square pin; its 2.69 mm diagonal fits the HAT's 2.75 mm holes
+PEG_S = 3.6           # square leg peg, flush with the frame's bed face; socket is PEG_S + PEG_CLEAR
 PEG_CLEAR = 0.3
 PEG_L = 4.0
-FLAT = 1.1            # pins and pegs are cut flat this far from their axis to lie on the bed
+FLAT = HAT_PIN_S / 2  # hole axis -> bed face, so the pins lie on the bed
 
 IW, IH = BW + 2 * CLEAR, BH + 2 * CLEAR
 OW, OH = IW + 2 * WALL, IH + 2 * WALL
@@ -81,9 +83,9 @@ def tray(snap=False, clips=True):
         for x, y in HAT_HOLES:
             body = body.union(cq.Workplane("XY").circle(HAT_BOSS_D / 2).extrude(WALL_H).translate((x, y, 0)))
             body = body.union(cut_box(x - 3, x + 3, IH / 2, y, 0, WALL_H))  # tie it to the wall
-            body = body.cut(cq.Workplane("XY").workplane(offset=WALL_H - PEG_L - 0.5).center(x, y)
-                            .circle((PEG_D + PEG_CLEAR) / 2).extrude(PEG_L + 1)
-                            .faces(">Z").edges().chamfer(0.4))
+            body = body.cut(cq.Workplane("XY").workplane(offset=WALL_H - PEG_L - 0.5)
+                            .center(x, y - FLAT + PEG_S / 2).rect(PEG_S + PEG_CLEAR, PEG_S + PEG_CLEAR)
+                            .extrude(PEG_L + 1).faces(">Z").edges().chamfer(0.4))
     if not snap:
         return body.cut(cq.Workplane("XY").workplane(offset=FLOOR + 1).pushPoints(HOLES)
                         .circle(HOLE_D / 2).extrude(STANDOFF_H))
@@ -139,9 +141,9 @@ def frame(gap, marks):
                                                  (xc, top - 1.5 - BRIDGE_H - GUSSET)]).close()
                     .extrude(-t).translate((0, -FLAT, 0)))
     for x in (x0, x1):
-        f = f.union(cq.Workplane("XY").workplane(offset=top).center(x, 0).circle(HAT_PIN_D / 2)
-                    .extrude(PCB_T + 0.8).faces(">Z").edges().chamfer(0.5))
-        f = f.union(cq.Workplane("XY").workplane(offset=-PEG_L).center(x, 0).circle(PEG_D / 2)
+        f = f.union(cq.Workplane("XY").workplane(offset=top).center(x, 0).rect(HAT_PIN_S, HAT_PIN_S)
+                    .extrude(PCB_T + 0.8).faces(">Z").edges().chamfer(0.4))
+        f = f.union(cq.Workplane("XY").workplane(offset=-PEG_L).center(x, -FLAT + PEG_S / 2).rect(PEG_S, PEG_S)
                     .extrude(PEG_L + 0.5).faces("<Z").edges().chamfer(0.4))
     for i in range(marks):
         xm = (x0 + x1) / 2 + (i - (marks - 1) / 2) * 4
