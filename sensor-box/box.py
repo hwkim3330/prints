@@ -6,7 +6,7 @@ Corner columns inside stiffen the walls and carry pilot holes for a lid later (l
 Rail bars and camera plates are separate small prints.
 
 Camera (measured): red holder 40.16 x 35.03 x 3.51 sits in the wall window, the clear housing
-31.74 x 30.25 (10.9 proud) goes through the outer camera plate, M2 screws at 34.1 x 29.0 from outside.
+31.74 x 30.25 (10.9 proud, flush with the red holder's top edge) goes through the outer camera plate, M2 screws at 34.1 x 29.0 from outside.
 Around each window the wall is thickened to 4 mm inside so the plate's M3 screws have something to bite.
 
 Design source: github.com/hwkim3330/scout-mini-sensor-box (REV9 sheet-metal box, rev10p panel version).
@@ -21,7 +21,7 @@ import numpy as np
 import trimesh
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-VERSION = "v3"                  # output folder; bump it for a new version and keep the old ones
+VERSION = "v4"                  # output folder; bump it for a new version and keep the old ones
 OUT = os.path.join(HERE, VERSION)
 os.makedirs(OUT, exist_ok=True)
 
@@ -46,6 +46,7 @@ PAD = (64.0, 59.0, 4.0)         # wall thickened to 4 mm around the window, insi
 CAM_PLATE = (60.0, 55.0, 3.0)
 CAM_SCREWS = [(sx * 24.0, sz * 22.0) for sx in (-1, 1) for sz in (-1, 1)]
 CAM_CUT = (CLEARP[0] + 0.6, CLEARP[1] + 0.6)
+CLEAR_DY = (RED[1] - CLEARP[1]) / 2   # the clear housing is flush with the red holder's top edge (cable side down)
 M2_PITCH = (31.90 + 2.2, 26.8 + 2.2)
 M2_HOLES = [(sx * M2_PITCH[0] / 2, sz * M2_PITCH[1] / 2) for sx in (-1, 1) for sz in (-1, 1)]
 M2_CLEAR = 2.4
@@ -155,7 +156,7 @@ def cam_plate():
     w, h, t = CAM_PLATE
     p = cq.Workplane("XY").box(w, h, t, centered=(True, True, False)).edges("|Z").fillet(4)
     p = p.cut(cq.Workplane("XY").pushPoints(CAM_SCREWS).circle(CLEAR3 / 2).extrude(t))
-    p = p.cut(cq.Workplane("XY").rect(*CAM_CUT).extrude(t))      # square corners: the camera fits as is
+    p = p.cut(cq.Workplane("XY").center(0, CLEAR_DY).rect(*CAM_CUT).extrude(t))   # square corners; M2 holes stay on the red holder's centre
     return p.cut(cq.Workplane("XY").pushPoints(M2_HOLES).circle(M2_CLEAR / 2).extrude(t))
 
 
@@ -170,7 +171,7 @@ def mesh(wp):
 def camera_dummy(i):
     """Red holder in the window + clear housing standing out through the plate, for clearance checks."""
     red = cq.Workplane("XY").center(0, CAM_Z).rect(RED[0], RED[1]).extrude(RED[2]).translate((0, 0, 0.3))
-    clr = cq.Workplane("XY").center(0, CAM_Z).rect(CLEARP[0], CLEARP[1]).extrude(CLEARP[2]).translate((0, 0, 0.3 - CLEARP[2]))
+    clr = cq.Workplane("XY").center(0, CAM_Z + CLEAR_DY).rect(CLEARP[0], CLEARP[1]).extrude(CLEARP[2]).translate((0, 0, 0.3 - CLEARP[2]))
     return mesh(on_face(i, red)), mesh(on_face(i, clr))
 
 

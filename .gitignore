@@ -2,3 +2,4 @@ bambu-cli/bs.AppImage
 bambu-cli/profiles/
 sliced/
 .DS_Store
+__pycache__/

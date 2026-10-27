@@ -2,9 +2,9 @@
 
 One-piece hexagonal box for the Bambu Lab A1, PLA, open top. One camera per face (6 cameras, 60° apart), with a Jetson AGX Orin inside. The original sheet-metal design is in [scout-mini-sensor-box](https://github.com/hwkim3330/scout-mini-sensor-box) (REV9), and its panel-assembled print version is in that repo's `rev10p/`.
 
-![Sensor box](v3/preview.png)
+![Sensor box](v4/preview.png)
 
-3D: [v3/assembly.stl](v3/assembly.stl) · Source: [box.py](box.py) (all dimensions at the top; `VERSION` sets the output folder)
+3D: [v4/assembly.stl](v4/assembly.stl) · Source: [box.py](box.py) (all dimensions at the top; `VERSION` sets the output folder)
 
 ## Versions (one-piece body)
 
@@ -13,19 +13,20 @@ One-piece hexagonal box for the Bambu Lab A1, PLA, open top. One camera per face
 | [v0-compare](v0-compare/) | Plain cups to compare shapes: round Ø245 vs hexagon (2.4 mm wall, windows only) | round 6 h 55 m / 395 g, hex 5 h 12 m / 329 g | [round](v0-compare/round.stl) · [hex](v0-compare/hex.stl) |
 | [v1](v1/) | Hexagon with everything: 2.8 mm walls, corner columns, 45° floor fillet and top lip, camera pads, vents, floor holes | 9 h 02 m / 371 g (0.2 mm) | [body](v1/body.stl) |
 | [v2](v2/) | 2.5 mm walls (exactly 6 lines, no gap fill), smaller columns, 0.24 mm layers | 8 h 02 m / 360 g | [body](v2/body.stl) · [assembly](v2/assembly.stl) |
-| **[v3](v3/)** (current) | Camera test fit the real camera; camera plate opening made square | body same as v2 | [body](v3/body.stl) · [camera plate](v3/cam_plate.stl) · [assembly](v3/assembly.stl) |
+| [v3](v3/) | Camera test fit the real camera; camera plate opening made square | body same as v2 | [body](v3/body.stl) · [camera plate](v3/cam_plate.stl) |
+| **[v4](v4/)** (current) | The clear housing is flush with the red holder's top edge (the cable is at the bottom), so the plate opening moves up 2.39 mm. The M2 holes stay symmetric on the red holder. Now the two lower holes are full circles; the two upper ones still touch the opening because they sit right beside the clear housing | body same as v2 | [camera plate](v4/cam_plate.stl) · [assembly](v4/assembly.stl) |
 
-Open issue: the camera plate's M2 holes (34.1 × 29.0, inferred from a caliper reading) sit 0.1 mm outside the clear housing, so they cut into the opening as notches. Waiting for measured hole positions.
+Note: the M2 holes (34.1 × 29.0, symmetric on the red holder) sit right beside the clear housing. Since v4 only the upper two cut into the opening.
 
 ## Print
 
 | File | Part | Settings | Time | PLA |
 |---|---|---|---|---|
-| `v3/body.gcode.3mf` | Body (one piece) | 0.24 mm layers, 3 walls | **about 8 h** | 360 g |
-| `v3/cam_plates_x6.gcode.3mf` | Camera plates ×6 | 0.2 mm | 1 h 07 m | 36 g |
-| `v3/rail_bars_x2.gcode.3mf` | Rail bars ×2 | 0.2 mm | 1 h 20 m | 59 g |
+| `v4/body.gcode.3mf` | Body (one piece) | 0.24 mm layers, 3 walls | **about 8 h** | 360 g |
+| `v4/cam_plates_x6.gcode.3mf` | Camera plates ×6 | 0.2 mm | 1 h 07 m | 36 g |
+| `v4/rail_bars_x2.gcode.3mf` | Rail bars ×2 | 0.2 mm | 1 h 20 m | 59 g |
 
-- **Before the body:** run `v3/cam_test.gcode.3mf` (25 minutes, 14 g). It prints **two pieces**:
+- **Before the body:** run `v4/cam_test.gcode.3mf` (25 minutes, 14 g). It prints **two pieces**:
   - a **piece of wall** (66 × 61 × 4) cut out around the window, the same thickness as the body's camera pad
   - **one camera plate**
 
