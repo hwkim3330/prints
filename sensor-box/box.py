@@ -22,7 +22,7 @@ import numpy as np
 import trimesh
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-VERSION = "v8"                  # output folder; bump it for a new version and keep the old ones
+VERSION = "v9"                  # output folder; bump it for a new version and keep the old ones
 OUT = os.path.join(HERE, VERSION)
 os.makedirs(OUT, exist_ok=True)
 
@@ -54,10 +54,13 @@ M2_HOLES = [(sx * M2_PITCH[0] / 2, sz * M2_PITCH[1] / 2) for sx in (-1, 1) for s
 M2_CLEAR = 2.4
 
 # vents: low intake, the open top is the exhaust
-VENT_W, VENT_H, VENT_PITCH, VENT_Z, VENT_N = 5.0, 24.0, 10.0, 18.0, 7
+VENT_W, VENT_H, VENT_PITCH, VENT_Z, VENT_N = 5.0, 24.0, 10.0, 18.0, 0   # v9: no low slots (open top)
 
 # high vents between the camera pads and the top lip: exhaust even with a plate on top
-VENT_HI_X, VENT_HI_Z, VENT_HI_H = (-43.0, -33.0, 33.0, 43.0), 115.5, 8.0
+VENT_HI_X, VENT_HI_Z, VENT_HI_H = (), 115.5, 8.0      # v9: replaced by a row of small round holes
+VENT_ROW = (9, 9.0, 3.5, 119.5)  # holes per face, pitch, diameter, height: exhaust if a plate covers the top
+RECESS = (CAM_WIN[0] - 2.0, M2_PITCH[1] + 5.0, 1.0)   # outside recess round the camera: M2 heads sit flush
+TOP_CHAMFER = 1.0
 CABLE_NOTCH = 20.0             # slot below the red holder's pocket for the camera cable
 RIBBON = (18.0, 0.8)           # channel for the ribbon that leaves between the clear housing and the red
                                # holder: from the opening's lower edge down to the slot, so it is not pinched
@@ -103,7 +106,8 @@ def on_face(i, wp):
 
 
 def body():
-    b = cq.Workplane("XY").polygon(6, 2 * L).extrude(H).edges("|Z").fillet(FILLET)
+    b = (cq.Workplane("XY").polygon(6, 2 * L).extrude(H).edges("|Z").fillet(FILLET)
+         .faces(">Z").edges().chamfer(TOP_CHAMFER))
     inner = cq.Workplane("XY").workplane(offset=FLOOR).polygon(6, 2 * (L - WALL / math.cos(math.radians(30)))).extrude(H)
     b = b.cut(inner)
     ri = L - WALL / math.cos(math.radians(30))          # inner circumradius
@@ -131,6 +135,9 @@ def body():
     b = b.cut(cq.Workplane("XY").workplane(offset=H - 12).pushPoints(lid_pilots).circle(PILOT / 2).extrude(13))
     for i in range(6):
         b = camera_mount(b, lambda wp: on_face(i, wp))
+        n, pitch, d, z = VENT_ROW
+        holes = [((k - (n - 1) / 2) * pitch, z) for k in range(n)]
+        b = b.cut(on_face(i, cq.Workplane("XY").pushPoints(holes).circle(d / 2).extrude(WALL + 2).translate((0, 0, -1))))
         for x in VENT_HI_X:
             v = (cq.Workplane("XY").center(x, VENT_HI_Z + VENT_HI_H / 2).rect(VENT_W, VENT_HI_H).extrude(WALL + 2)
                  .translate((0, 0, -1)).edges("|Z").fillet(VENT_W / 2 - 0.01))
@@ -172,6 +179,9 @@ def camera_mount(b, place):
                     .extrude(PAD[2]).edges("|Z").fillet(1)))
     b = b.cut(place(cq.Workplane("XY").center(0, cz + CLEAR_DY).rect(*CAM_CUT).extrude(PAD[2] + 2)
                     .translate((0, 0, -1))))
+    # shallow recess on the outside round the camera so the M2 heads sit below the surface
+    b = b.cut(place(cq.Workplane("XY").center(0, cz).rect(RECESS[0], RECESS[1]).extrude(RECESS[2] + 1)
+                    .translate((0, 0, -1)).edges("|Z").fillet(3)))
     return b.cut(place(cq.Workplane("XY").pushPoints([(x, cz + y) for x, y in M2_HOLES]).circle(M2_CLEAR / 2)
                        .extrude(PAD[2] + 2).translate((0, 0, -1))))
 

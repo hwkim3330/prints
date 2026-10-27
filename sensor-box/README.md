@@ -2,9 +2,9 @@
 
 One-piece hexagonal box for the Bambu Lab A1, PLA, open top. One camera per face (6 cameras, 60° apart), with a Jetson AGX Orin inside. The original sheet-metal design is in [scout-mini-sensor-box](https://github.com/hwkim3330/scout-mini-sensor-box) (REV9), and its panel-assembled print version is in that repo's `rev10p/`.
 
-![Sensor box](v8/preview.png)
+![Sensor box](v9/preview.png)
 
-3D: [v8/assembly.stl](v8/assembly.stl) · Source: [box.py](box.py) (all dimensions at the top; `VERSION` sets the output folder)
+3D: [v9/assembly.stl](v9/assembly.stl) · Source: [box.py](box.py) (all dimensions at the top; `VERSION` sets the output folder)
 
 ## Versions (one-piece body)
 
@@ -18,17 +18,18 @@ One-piece hexagonal box for the Bambu Lab A1, PLA, open top. One camera per face
 | [v5](v5/) | **Simpler: no camera plates.** The camera mounts straight on the wall. The clear housing goes out through an opening in the wall, the red holder sits in a 1 mm pocket inside a 4 mm pad, and 4 × M2 × 6 go from outside into the red holder. That removes 6 plates and 24 M3 screws | 7 h 57 m / 365 g | [body](v5/body.stl) · [camera test](v5/cam_test.stl) · [assembly](v5/assembly.stl) |
 | [v6](v6/) | Outer corners rounded R12 instead of R3: softer look, and big round corners are less likely to lift on a 236 mm print. The corners stay about 8 mm thick thanks to the inner columns. Camera mount = v5 (variant 1, checked on paper) | 7 h 53 m / 363 g | [body](v6/body.stl) · [assembly](v6/assembly.stl) |
 | [v7](v7/) | Fixes from an independent review of v6: the outer rail-bar bolt holes were buried under the 45° floor fillet (bolts now at x ±20/±60); the AGX holes sat on top of the rail bar (AGX centred, bars moved to y ±70); the lid pilot holes were sealed by the top lip; the M4 nut pocket was 7.01 mm across flats for a 7.0 mm nut (now 7.27); added a cable slot under each camera pocket, a 45° slope under the camera pads, and 4 high vents per face so it can still exhaust with a plate on top | 7 h 57 m / 360 g | [body](v7/body.stl) · [assembly](v7/assembly.stl) |
-| **[v8](v8/)** (current) | Ribbon channel: the camera's thin ribbon leaves between the clear housing and the red holder, which sat flat against the wall and would pinch it. An 18 mm wide, 0.8 mm deep channel now runs in the wall face under the red holder, from the opening's lower edge down to the cable slot | see below | [body](v8/body.stl) · [camera test](v8/cam_test.stl) · [assembly](v8/assembly.stl) |
+| [v8](v8/) | Ribbon channel: the camera's thin ribbon leaves between the clear housing and the red holder, which sat flat against the wall and would pinch it. An 18 mm wide, 0.8 mm deep channel now runs in the wall face under the red holder, from the opening's lower edge down to the cable slot | 8 h 02 m / 359 g | [body](v8/body.stl) · [camera test](v8/cam_test.stl) · [assembly](v8/assembly.stl) |
+| **[v9](v9/)** (current) | Cleaner and steadier for the 8-hour print: the low vent slots are gone (the top is open; fewer bridges and nozzle hops), a row of nine 3.5 mm round holes under the top edge of each face keeps an exhaust if a plate covers the top, a 1 mm recess outside each camera puts the M2 heads below the surface, 1 mm chamfer on the top edge. Camera mount otherwise = v8 | **7 h 19 m / 372 g** | [body](v9/body.stl) · [camera test](v9/cam_test.stl) · [assembly](v9/assembly.stl) |
 
 Note: the M2 holes (34.1 × 29.0, symmetric on the red holder) sit right beside the clear housing. Since v4 only the upper two cut into the opening.
 
-## Print (v8)
+## Print (v9)
 
 | File | Part | Time | PLA |
 |---|---|---|---|
-| `v8/cam_test.gcode.3mf` | Camera test: the wall's camera mount cut out as one small piece | 13 m | 7 g |
-| `v8/body.gcode.3mf` | Body (one piece, 0.24 mm layers) | **about 7 h 57 m** | 360 g |
-| `v8/rail_bars_x2.gcode.3mf` | Rail bars ×2 (after the robot arrives) | 1 h 20 m | 59 g |
+| `v9/cam_test.gcode.3mf` | Camera test: the wall's camera mount cut out as one small piece | 13 m | 7 g |
+| `v9/body.gcode.3mf` | Body (one piece, 0.24 mm layers) | **about 7 h 19 m** | 372 g |
+| `v9/rail_bars_x2.gcode.3mf` | Rail bars ×2 (after the robot arrives) | 1 h 20 m | 59 g |
 
 - **Paper check (no printing):** [v5/cam_template_A4.pdf](v5/cam_template_A4.pdf) has the four variants below on one A4 sheet, numbered 1-4 at 1:1 (made by `cam_template.py`). Print it at 100 % (actual size), check the 100 mm bar with a ruler, and lay the camera on each one.
 - **Or pick from four:** `v5/cam_test_variants.gcode.3mf` (52 min) puts four test pieces on one plate. Count the small holes in a corner to tell them apart:
@@ -53,7 +54,7 @@ Note: the M2 holes (34.1 × 29.0, symmetric on the red holder) sit right beside 
   - A 45° lip around the inside of the top rim, which stiffens it and gives a lid something to sit on.
   - 4 mm pads inside around each camera, so the M2 screws have material to bite (45° underside, cable slot below the pocket).
   - A 0.5 mm chamfer on the first layer to prevent elephant foot.
-- **Vents:** 7 slots low on each face for intake, plus 4 high slots under the lip for exhaust (still open with a plate on top).
+- **Vents (v9):** the top is open; a row of nine 3.5 mm round holes under the top edge of each face is the exhaust if a plate covers it.
 
 ## Camera mounting (measured, v5)
 
