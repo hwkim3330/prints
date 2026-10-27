@@ -11,8 +11,8 @@ Files that live in other repos are named by repo and path; copy the `.gcode.3mf`
 | 4 | Glazing corner coupon: test the fit into the roof coupon's opening (0.2 mm gap by design) | PETG (smoke/clear) | 28 m / 3.9 g | private testbed repo, `print/sd/test_02_PETG_smoke_pane.gcode.3mf` | needs PETG |
 | 5 | Microchip AC164162 base tray (snap version) | PLA | 35 m / 24 g | `ac164162/out/tray_snap.gcode.3mf` | printed 2026-10-27; user: no more snap versions (screw version `tray.gcode.3mf` on SD) |
 | 6 | T-ETH Elite kit v2 (tray + 19.5 mm HAT pillars, one solid rectangular base) | PLA | 25 m / 15 g | `t-eth-elite/out/kit.gcode.3mf` | on SD; v1 and the frame version came loose twice |
-| 7 | Robot sensor box, one-piece hexagonal body (+ 6 camera plates, rail bars after the robot arrives) | PLA, open top | body ~7 h 53 m / 363 g | `sensor-box/v6/` (panel version: `scout-mini-sensor-box/rev10p/`) | after #8 |
-| 8 | Camera test for #7: one camera plate + a wall piece with the window (camera measured: red holder 40.16 x 35.03 x 3.51, clear part 31.74 x 30.25, M2 at 34.1 x 29.0) | PLA | 25 m / 14 g | `sensor-box/v6/cam_test.gcode.3mf` (13 m) | A4 template: variant 1 (= v5) fits the real camera; print the body next |
+| 7 | Robot sensor box, one-piece hexagonal body (+ 6 camera plates, rail bars after the robot arrives) | PLA, open top | body ~7 h 57 m / 360 g | `sensor-box/v7/` (panel version: `scout-mini-sensor-box/rev10p/`) | after #8 |
+| 8 | Camera test for #7: one camera plate + a wall piece with the window (camera measured: red holder 40.16 x 35.03 x 3.51, clear part 31.74 x 30.25, M2 at 34.1 x 29.0) | PLA | 25 m / 14 g | `sensor-box/v7/cam_test.gcode.3mf` (13 m) | A4 template: variant 1 (= v5) fits the real camera; print the body next |
 | 9 | Full car body (decide the layer height from #2/#3 first) | PLA white | ~31 h (body) / ~63 h (all) | private testbed repo, `print/PLATES.md` | after #2-#4 |
 
 Notes

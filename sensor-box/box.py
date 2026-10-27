@@ -1,7 +1,7 @@
 """SCOUT MINI sensor box, print version: one-piece hexagonal body for the Bambu Lab A1, PLA, open top.
 
 Body: hexagon 240 mm across corners (fits the 256 mm bed), 208 across flats, 130 tall, 2.5 mm walls,
-3.2 mm floor, 45 deg fillets at the floor and a 45 deg lip at the top, printed floor-down without supports in one ~5 h job. One camera per face (60 deg apart).
+3.2 mm floor, 45 deg fillets at the floor and a 45 deg lip at the top, printed floor-down without supports in one ~8 h job. One camera per face (60 deg apart).
 Corner columns inside stiffen the walls and carry pilot holes for a lid later (lidar not decided).
 Rail bars are a separate small print.
 
@@ -22,7 +22,7 @@ import numpy as np
 import trimesh
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-VERSION = "v6"                  # output folder; bump it for a new version and keep the old ones
+VERSION = "v7"                  # output folder; bump it for a new version and keep the old ones
 OUT = os.path.join(HERE, VERSION)
 os.makedirs(OUT, exist_ok=True)
 
@@ -56,9 +56,13 @@ M2_CLEAR = 2.4
 # vents: low intake, the open top is the exhaust
 VENT_W, VENT_H, VENT_PITCH, VENT_Z, VENT_N = 5.0, 24.0, 10.0, 18.0, 7
 
+# high vents between the camera pads and the top lip: exhaust even with a plate on top
+VENT_HI_X, VENT_HI_Z, VENT_HI_H = (-43.0, -33.0, 33.0, 43.0), 115.5, 8.0
+CABLE_NOTCH = 20.0             # slot below the red holder's pocket for the camera cable
+
 # floor
 GRID = 20.0
-AGX_C = (0.0, 15.0)
+AGX_C = (0.0, 0.0)              # centred: even cable room all round, holes clear of the rail bars
 AGX_SO = [(AGX_C[0] + sx * 45, AGX_C[1] + sy * 45) for sx in (-1, 1) for sy in (-1, 1)]
 AGX_BOX = (110.0, 110.0, 72.0)
 
@@ -66,8 +70,8 @@ AGX_BOX = (110.0, 110.0, 72.0)
 RAIL_X = 115.0
 RAIL_SLOT = (5.5, 24.0)
 BAR = (248.0, 30.0, 8.0)
-BAR_Y = 60.0
-BAR_BOLTS_X = (-80.0, -40.0, 40.0, 80.0)
+BAR_Y = 70.0                    # bars run under y 55..85, clear of the AGX holes (y +-45)
+BAR_BOLTS_X = (-60.0, -20.0, 20.0, 60.0)   # all inside the 45 deg floor fillet
 M4 = 4.5
 
 
@@ -100,6 +104,7 @@ def body():
     inner = cq.Workplane("XY").workplane(offset=FLOOR).polygon(6, 2 * (L - WALL / math.cos(math.radians(30)))).extrude(H)
     b = b.cut(inner)
     ri = L - WALL / math.cos(math.radians(30))          # inner circumradius
+    lid_pilots = []
     for k in range(6):                                  # inner corner columns
         a = math.radians(60 * k)
         v = np.array([ri * math.cos(a), ri * math.sin(a)])
@@ -108,7 +113,8 @@ def body():
         pts = [v, v + COL * u1, v + COL * (u1 + u2), v + COL * u2]
         col = cq.Workplane("XY").polyline([tuple(p) for p in pts]).close().extrude(H)
         c = v + COL * (u1 + u2) / 2
-        b = b.union(col).cut(cq.Workplane("XY").workplane(offset=H - 12).center(*c).circle(PILOT / 2).extrude(13))
+        b = b.union(col)
+        lid_pilots.append(tuple(c))
     li = ri                                             # inner side length (= inner circumradius)
     for i in range(6):
         # fillet strip at the floor and a lip at the top, both 45 deg so they print without supports
@@ -118,8 +124,14 @@ def body():
                .extrude(li / 2, both=True))
         b = b.union(on_face(i, foot)).union(on_face(i, lip))
     b = b.faces("<Z").edges().chamfer(0.5)              # no elephant foot on the first layer
+    # lid pilots go in after the lip, which would otherwise close them over
+    b = b.cut(cq.Workplane("XY").workplane(offset=H - 12).pushPoints(lid_pilots).circle(PILOT / 2).extrude(13))
     for i in range(6):
         b = camera_mount(b, lambda wp: on_face(i, wp))
+        for x in VENT_HI_X:
+            v = (cq.Workplane("XY").center(x, VENT_HI_Z + VENT_HI_H / 2).rect(VENT_W, VENT_HI_H).extrude(WALL + 2)
+                 .translate((0, 0, -1)).edges("|Z").fillet(VENT_W / 2 - 0.01))
+            b = b.cut(on_face(i, v))
         for j in range(VENT_N):
             x = (j - (VENT_N - 1) / 2) * VENT_PITCH
             v = (cq.Workplane("XY").center(x, VENT_Z + VENT_H / 2).rect(VENT_W, VENT_H).extrude(WALL + 2)
@@ -143,6 +155,12 @@ def camera_mount(b, place):
     coordinates (XY on the outer face, +Z inwards) mapped by `place`."""
     cz = CAM_Z
     b = b.union(place(cq.Workplane("XY").center(0, cz).rect(PAD[0], PAD[1]).extrude(PAD[2])))
+    y0, d = cz - PAD[1] / 2, PAD[2] - WALL                # 45 deg slope under the pad instead of a flat ledge
+    b = b.union(place(cq.Workplane("YZ").polyline([(y0, WALL), (y0, PAD[2]), (y0 - d, WALL)]).close()
+                      .extrude(PAD[0] / 2, both=True)))
+    # cable slot from the pocket down through the pad's lower edge
+    b = b.cut(place(cq.Workplane("XY").workplane(offset=CAM_T).center(0, cz - CAM_WIN[1] / 2 - 5)
+                    .rect(CABLE_NOTCH, 10).extrude(PAD[2])))
     b = b.cut(place(cq.Workplane("XY").workplane(offset=CAM_T).center(0, cz).rect(*CAM_WIN)
                     .extrude(PAD[2]).edges("|Z").fillet(1)))
     b = b.cut(place(cq.Workplane("XY").center(0, cz + CLEAR_DY).rect(*CAM_CUT).extrude(PAD[2] + 2)
@@ -161,7 +179,7 @@ def cam_test():
 def rail_bar():
     b = cq.Workplane("XY").box(*BAR, centered=(True, True, False)).edges("|Z").fillet(4)
     b = b.cut(cq.Workplane("XY").pushPoints([(x, 0) for x in BAR_BOLTS_X]).circle(M4 / 2).extrude(BAR[2]))
-    b = b.cut(cq.Workplane("XY").pushPoints([(x, 0) for x in BAR_BOLTS_X]).polygon(6, 8.1).extrude(3.2))
+    b = b.cut(cq.Workplane("XY").pushPoints([(x, 0) for x in BAR_BOLTS_X]).polygon(6, 8.4).extrude(3.2))   # M4 nut 7.0 across flats; polygon() takes the corner diameter
     for sx in (-1, 1):
         b = b.cut(cq.Workplane("XY").center(sx * RAIL_X, 0).slot2D(RAIL_SLOT[1], RAIL_SLOT[0]).extrude(BAR[2]))
     return b
