@@ -34,7 +34,7 @@ Note: the M2 holes (34.1 × 29.0, symmetric on the red holder) sit right beside 
   3. 31.9 × 26.8 (the caliper reading taken as centre distance), up 2.39
   4. 34.1 × 29.0, opening centred
 
-  Tell me which one fits and I'll set it in the body.
+  **Result (2026-10-27): variant 1 fits (A4 check) = v5 as it is.**
 - **Camera test first:** fit the real camera into it. The clear housing goes out through the opening, the red holder drops into the pocket, and 4 × M2 go in from outside.
 - **Body:** it takes about 8 hours, so start it in the morning and wash the bed plate first.
 - **Rail bars:** print them after the robot arrives. The body doesn't depend on the rails.
