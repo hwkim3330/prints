@@ -57,6 +57,6 @@ ax.plot([55, 155], [25, 25], c="k", lw=1)
 for x in (55, 155):
     ax.plot([x, x], [23, 27], c="k", lw=1)
 ax.text(105, 28, "100 mm", ha="center", fontsize=7)
-out = os.path.join(os.path.dirname(os.path.abspath(__file__)), "v5", "cam_template_A4.pdf")
+out = os.path.join(os.path.dirname(os.path.abspath(__file__)), "v6", "cam_template_A4.pdf")
 fig.savefig(out)
 fig.savefig(out.replace(".pdf", ".png"), dpi=110)

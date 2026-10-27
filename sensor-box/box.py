@@ -22,7 +22,7 @@ import numpy as np
 import trimesh
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-VERSION = "v5"                  # output folder; bump it for a new version and keep the old ones
+VERSION = "v6"                  # output folder; bump it for a new version and keep the old ones
 OUT = os.path.join(HERE, VERSION)
 os.makedirs(OUT, exist_ok=True)
 
@@ -33,7 +33,7 @@ WALL = 2.5                      # = 6 lines of 0.42 (3 walls each side): no slow
 FLOOR = 3.2
 FOOT = 7.0                      # 45 deg fillet strip inside where the walls meet the floor
 LIP = 5.0                       # 45 deg inward lip around the top: stiffens the rim, seat for a lid
-FILLET = 3.0                    # outer vertical corners
+FILLET = 12.0                   # outer vertical corners: soft look, and big round corners lift less than sharp ones
 COL = 7.0                       # inner corner column, measured along each wall
 PILOT = 2.6                     # M3 self-tapping
 CLEAR3 = 3.4

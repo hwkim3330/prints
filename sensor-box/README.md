@@ -15,17 +15,18 @@ One-piece hexagonal box for the Bambu Lab A1, PLA, open top. One camera per face
 | [v2](v2/) | 2.5 mm walls (exactly 6 lines, no gap fill), smaller columns, 0.24 mm layers | 8 h 02 m / 360 g | [body](v2/body.stl) · [assembly](v2/assembly.stl) |
 | [v3](v3/) | Camera test fit the real camera; camera plate opening made square | body same as v2 | [body](v3/body.stl) · [camera plate](v3/cam_plate.stl) |
 | [v4](v4/) | The clear housing is flush with the red holder's top edge (the cable is at the bottom), so the plate opening moves up 2.39 mm. The M2 holes stay symmetric on the red holder. Now the two lower holes are full circles; the two upper ones still touch the opening because they sit right beside the clear housing | body same as v2 | [camera plate](v4/cam_plate.stl) · [assembly](v4/assembly.stl) |
-| **[v5](v5/)** (current) | **Simpler: no camera plates.** The camera mounts straight on the wall. The clear housing goes out through an opening in the wall, the red holder sits in a 1 mm pocket inside a 4 mm pad, and 4 × M2 × 6 go from outside into the red holder. That removes 6 plates and 24 M3 screws | 7 h 57 m / 365 g | [body](v5/body.stl) · [camera test](v5/cam_test.stl) · [assembly](v5/assembly.stl) |
+| [v5](v5/) | **Simpler: no camera plates.** The camera mounts straight on the wall. The clear housing goes out through an opening in the wall, the red holder sits in a 1 mm pocket inside a 4 mm pad, and 4 × M2 × 6 go from outside into the red holder. That removes 6 plates and 24 M3 screws | 7 h 57 m / 365 g | [body](v5/body.stl) · [camera test](v5/cam_test.stl) · [assembly](v5/assembly.stl) |
+| **[v6](v6/)** (current) | Outer corners rounded R12 instead of R3: softer look, and big round corners are less likely to lift on a 236 mm print. The corners stay about 8 mm thick thanks to the inner columns. Camera mount = v5 (variant 1, checked on paper) | see below | [body](v6/body.stl) · [assembly](v6/assembly.stl) |
 
 Note: the M2 holes (34.1 × 29.0, symmetric on the red holder) sit right beside the clear housing. Since v4 only the upper two cut into the opening.
 
-## Print (v5)
+## Print (v6)
 
 | File | Part | Time | PLA |
 |---|---|---|---|
-| `v5/cam_test.gcode.3mf` | Camera test: the wall's camera mount cut out as one small piece | 13 m | 7 g |
-| `v5/body.gcode.3mf` | Body (one piece, 0.24 mm layers) | **about 8 h** | 365 g |
-| `v5/rail_bars_x2.gcode.3mf` | Rail bars ×2 (after the robot arrives) | 1 h 20 m | 59 g |
+| `v6/cam_test.gcode.3mf` | Camera test: the wall's camera mount cut out as one small piece | 13 m | 7 g |
+| `v6/body.gcode.3mf` | Body (one piece, 0.24 mm layers) | **about 8 h** | 365 g |
+| `v6/rail_bars_x2.gcode.3mf` | Rail bars ×2 (after the robot arrives) | 1 h 20 m | 59 g |
 
 - **Paper check (no printing):** [v5/cam_template_A4.pdf](v5/cam_template_A4.pdf) has the four variants below on one A4 sheet, numbered 1-4 at 1:1 (made by `cam_template.py`). Print it at 100 % (actual size), check the 100 mm bar with a ruler, and lay the camera on each one.
 - **Or pick from four:** `v5/cam_test_variants.gcode.3mf` (52 min) puts four test pieces on one plate. Count the small holes in a corner to tell them apart:
