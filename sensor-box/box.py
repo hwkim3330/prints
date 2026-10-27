@@ -154,7 +154,7 @@ def cam_plate():
     w, h, t = CAM_PLATE
     p = cq.Workplane("XY").box(w, h, t, centered=(True, True, False)).edges("|Z").fillet(4)
     p = p.cut(cq.Workplane("XY").pushPoints(CAM_SCREWS).circle(CLEAR3 / 2).extrude(t))
-    p = p.cut(cq.Workplane("XY").rect(*CAM_CUT).extrude(t).edges("|Z").fillet(1.0))
+    p = p.cut(cq.Workplane("XY").rect(*CAM_CUT).extrude(t))      # square corners: the camera fits as is
     return p.cut(cq.Workplane("XY").pushPoints(M2_HOLES).circle(M2_CLEAR / 2).extrude(t))
 
 

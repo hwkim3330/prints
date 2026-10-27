@@ -40,7 +40,7 @@ One-piece hexagonal box for the Bambu Lab A1, PLA, open top. One camera per face
 
 - **Red holder** (40.16 × 35.03 × 3.51) fits in the 41 × 36 wall window.
 - **Clear housing** (31.74 × 30.25, 10.9 mm tall) goes out through the camera plate opening.
-- **Screws:** M2 × 6 from outside, at 34.1 × 29.0. That spacing comes from a caliper reading of 31.90 × 26.8 plus a hole diameter of 2.2, so confirm it with the camera test.
+- **Screws:** M2 × 6 from outside, at 34.1 × 29.0 (a caliper reading of 31.90 × 26.8 plus a hole diameter of 2.2). **The camera test fit on the real camera (2026-10-27)**; mind which way the camera faces when fitting it. The plate opening has square corners.
 - **Plate to body:** M3 self-tapping, 4 per camera.
 - The code checks the camera dummies against the body and plates: no collisions.
 
