@@ -51,8 +51,8 @@ FRAME_T = 5.0         # frame thickness (Y), from FLAT below the hole axis
 BRIDGE_H = 6.0
 GUSSET = 4.0
 HAT_PIN_S = 1.9       # square pin; its 2.69 mm diagonal fits the HAT's 2.75 mm holes
-PEG_S = 3.6           # square leg peg, flush with the frame's bed face; socket is PEG_S + PEG_CLEAR
-PEG_CLEAR = 0.3
+PEG_S = 2.8           # square leg peg on the hole axis; corners 0.17 mm inside the round socket (printed holes shrink)
+PEG_SOCKET_D = 4.3    # round socket, the same as on the first printed trays
 PEG_L = 4.0
 FLAT = HAT_PIN_S / 2  # hole axis -> bed face, so the pins lie on the bed
 
@@ -83,9 +83,8 @@ def tray(snap=False, clips=True):
         for x, y in HAT_HOLES:
             body = body.union(cq.Workplane("XY").circle(HAT_BOSS_D / 2).extrude(WALL_H).translate((x, y, 0)))
             body = body.union(cut_box(x - 3, x + 3, IH / 2, y, 0, WALL_H))  # tie it to the wall
-            body = body.cut(cq.Workplane("XY").workplane(offset=WALL_H - PEG_L - 0.5)
-                            .center(x, y - FLAT + PEG_S / 2).rect(PEG_S + PEG_CLEAR, PEG_S + PEG_CLEAR)
-                            .extrude(PEG_L + 1).faces(">Z").edges().chamfer(0.4))
+            body = body.cut(cq.Workplane("XY").workplane(offset=WALL_H - PEG_L - 0.5).center(x, y)
+                            .circle(PEG_SOCKET_D / 2).extrude(PEG_L + 1).faces(">Z").edges().chamfer(0.4))
     if not snap:
         return body.cut(cq.Workplane("XY").workplane(offset=FLOOR + 1).pushPoints(HOLES)
                         .circle(HOLE_D / 2).extrude(STANDOFF_H))
@@ -143,7 +142,7 @@ def frame(gap, marks):
     for x in (x0, x1):
         f = f.union(cq.Workplane("XY").workplane(offset=top).center(x, 0).rect(HAT_PIN_S, HAT_PIN_S)
                     .extrude(PCB_T + 0.8).faces(">Z").edges().chamfer(0.4))
-        f = f.union(cq.Workplane("XY").workplane(offset=-PEG_L).center(x, -FLAT + PEG_S / 2).rect(PEG_S, PEG_S)
+        f = f.union(cq.Workplane("XY").workplane(offset=-PEG_L).center(x, 0).rect(PEG_S, PEG_S)
                     .extrude(PEG_L + 0.5).faces("<Z").edges().chamfer(0.4))
     for i in range(marks):
         xm = (x0 + x1) / 2 + (i - (marks - 1) / 2) * 4
