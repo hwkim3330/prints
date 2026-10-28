@@ -45,6 +45,11 @@ The camera slides up into two rails inside the front wall (by its edges) and res
 the lid is on. Pegs, no screws. `FAN_TOP` is an estimate (38 mm); the lid leaves 5 mm over it.
 `out/case.gcode.3mf` = both parts, 2 h 33 m, 79 g.
 
+**Printed 2026-10-28: does not fit.** The fan height and the port openings came out wrong on the real board
+(user's check). Both came from estimates and the SBC Model Framework mock, not from a measured or official
+model. Next version: start from NVIDIA's own Jetson Nano Developer Kit 3D model (or a published open case)
+and measure PCB top -> fan top (screw heads included) before cutting the lid.
+
 ## t-display/
 
 `case.py`: tiny pumpkin case for the LILYGO TTGO T-Display with a 1000 mAh TW102050 cell on its back,

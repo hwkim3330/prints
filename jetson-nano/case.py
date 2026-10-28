@@ -1,4 +1,7 @@
-"""Two-part case for the Jetson Nano Developer Kit (B01 / A02 carrier, heatsink + fan on) with the Arducam
+"""PRINTED 2026-10-28 AND DID NOT FIT: fan height (FAN_TOP, an estimate) and the port openings were wrong on the
+real board. Rebuild from NVIDIA's dev-kit 3D model / measured heights before printing again.
+
+Two-part case for the Jetson Nano Developer Kit (B01 / A02 carrier, heatsink + fan on) with the Arducam
 B0179 (IMX219 8 MP) looking out of the front, above the ports (Bambu A1, PLA, no supports, no bridges,
 no screws, no clips).
 
