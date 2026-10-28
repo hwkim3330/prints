@@ -60,3 +60,12 @@ the screen window, press flaps over the two board buttons (U-slit, ~0.7 mm thin,
 notch for the side reset, and shallow rib grooves. Board data
 from LILYGO's official STEP (not committed; github.com/Xinyuan-LilyGO/TTGO-T-Display). Friction tongue,
 no screws/clips/supports/bridges. `out/case.gcode.3mf` = both parts, 34 min, 12 g (red-orange PLA).
+
+## cyd/
+
+`case.py`: case for the ESP32-2432S028 "Cheap Yellow Display" (USB-C + micro-USB board). It starts from a printed,
+proven design, Mechaela's CYD Slim Snap Case ([witnessmenow/ESP32-Cheap-Yellow-Display](https://github.com/witnessmenow/ESP32-Cheap-Yellow-Display/tree/main/3dModels/Mechaelas_CYD_Snap_Case),
+kept in `cyd/ref/`, not committed), and opens its port end from the top edge to the floor between the corner posts
+(y 8..46), so USB-C, micro-USB and the wire power connector all come out on any board revision. Snap fit, no
+screws. `out/case.gcode.3mf` = both parts (screen part face down), 43 min, 16 g.
+
