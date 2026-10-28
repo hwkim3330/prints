@@ -21,11 +21,16 @@ for kind in ("machine", "process", "filament"):
 
 
 def resolve(kind, name):
+    """inherits chain first, then the profile's `include` templates (newer profiles keep the start/end/
+    filament-change G-code there; without them the CLI falls back to a generic start that only heats the
+    nozzle to 205 C), then the profile itself."""
     d = index[(kind, name)]
-    base = resolve(kind, d["inherits"]) if d.get("inherits") else {}
-    merged = dict(base)
+    merged = dict(resolve(kind, d["inherits"])) if d.get("inherits") else {}
+    for inc in d.get("include", []):
+        merged.update({k: v for k, v in index[(kind, inc)].items() if k not in ("name", "instantiation")})
     merged.update(d)
-    merged.pop("inherits", None)
+    for k in ("inherits", "include"):
+        merged.pop(k, None)
     return merged
 
 
