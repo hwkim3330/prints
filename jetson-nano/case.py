@@ -1,5 +1,8 @@
-"""PRINTED 2026-10-28 AND DID NOT FIT: fan height (FAN_TOP, an estimate) and the port openings were wrong on the
-real board. Rebuild from NVIDIA's dev-kit 3D model / measured heights before printing again.
+"""v2 (2026-10-28): the first print did not fit. The HDMI/DP stack is taller than assumed, so the DP port was
+covered (now 18.8 mm over the PCB, x 14..32.5, as in the printed open case github.com/dudasdavid/Jetson-nano-case),
+and the fan stood higher than the 38 mm estimate (now 48: dev kit 29 mm from the PCB underside to the heatsink
+top, plus a 20 mm fan as NVIDIA recommends). Measure PCB top -> fan top (screw heads included) and set FAN_TOP
+if yours differs. Only the lid changes; the base is the same.
 
 Two-part case for the Jetson Nano Developer Kit (B01 / A02 carrier, heatsink + fan on) with the Arducam
 B0179 (IMX219 8 MP) looking out of the front, above the ports (Bambu A1, PLA, no supports, no bridges,
@@ -53,7 +56,7 @@ CORNER = 10.0
 BOTTOM_CHAMFER = 1.2
 SEAM_CHAMFER = 0.6
 TOP_CHAMFER = 1.2               # chamfers, not fillets, at the bed
-FAN_TOP = float(os.environ.get("FAN_TOP", "38.0"))   # PCB top -> fan top (estimate, see above)
+FAN_TOP = float(os.environ.get("FAN_TOP", "48.0"))   # PCB top -> fan top (v1 guessed 38 and hit the fan)
 FAN_GAP = 5.0                   # fan top -> ceiling, at least (FAN_TOP is an estimate)
 TOP_T = 2.4
 TONGUE = (1.2, 2.0)             # base wall tongue: thickness, height
@@ -62,7 +65,7 @@ TONGUE_KEEP = 9.0               # tongue along the back wall from each corner
 SEAM_DROP = 0.3                 # base/frame seam just under the PCB top
 
 # front notches (board x from, board x to, height over the PCB top), MARGIN on the sides and top
-PORTS = [("barrel", 2.0, 11.0, 11.0), ("hdmi/dp", 14.0, 30.0, 14.5), ("usb x4", 36.0, 67.5, 16.0),
+PORTS = [("barrel", 2.0, 11.0, 11.0), ("hdmi/dp", 14.0, 32.5, 18.8), ("usb x4", 36.0, 67.5, 16.0),
          ("rj45", 68.5, 84.5, 13.5), ("micro-usb", 88.0, 96.0, 3.5)]
 MARGIN = 0.7
 WIN_R = 1.0

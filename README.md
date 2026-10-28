@@ -45,10 +45,11 @@ The camera slides up into two rails inside the front wall (by its edges) and res
 the lid is on. Pegs, no screws. `FAN_TOP` is an estimate (38 mm); the lid leaves 5 mm over it.
 `out/case.gcode.3mf` = both parts, 2 h 33 m, 79 g.
 
-**Printed 2026-10-28: does not fit.** The fan height and the port openings came out wrong on the real board
-(user's check). Both came from estimates and the SBC Model Framework mock, not from a measured or official
-model. Next version: start from NVIDIA's own Jetson Nano Developer Kit 3D model (or a published open case)
-and measure PCB top -> fan top (screw heads included) before cutting the lid.
+**v1 printed 2026-10-28 and did not fit:** the DP port was covered and the lid hit the fan (both were estimates).
+**v2 lid** (`out/case_lid_v2.gcode.3mf`, 2 h 37 m, 69 g; the base is unchanged): HDMI/DP notch 18.8 mm over the PCB,
+x 14..32.5, as in the printed open case [dudasdavid/Jetson-nano-case](https://github.com/dudasdavid/Jetson-nano-case);
+`FAN_TOP` 48 mm (dev kit 29 mm + a 20 mm fan), 5 mm over it. Case now 64 mm tall. Measure PCB top -> fan top
+(screw heads included) before printing and run `FAN_TOP=<mm> ... case.py` if it differs.
 
 ## t-display/
 
