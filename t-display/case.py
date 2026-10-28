@@ -29,7 +29,7 @@ BUTTONS = [(4.5, 3.37), (20.98, 3.37)]            # GPIO0 / GPIO35 tact switches
 FLAP = (5.4, 8.5, 0.6, 0.15)                      # press flap over each button: width, length (hinge towards the
                                                   # screen), slit, gap above the switch; thinned to ~0.7 mm so it bends
 KEYRING = (10.0, 8.0, 3.0, 4.5)                   # loop on the base's far end: width, reach past the wall, thickness, hole
-RESET_Y, RESET_W, RESET_TOP = 11.9, 4.6, 2.3      # side-push reset on the x = 0 edge
+RESET_Y, RESET_W, RESET_TOP = 11.9, 4.6, 2.3      # side-push reset on the board's x = 0 edge
 STACK_HI, STACK_LO = 18.8, 13.0                   # glass face -> battery back, USB end / far end (measured)
 
 CLEAR = 0.3                                       # board to wall
@@ -51,6 +51,7 @@ SEAM = -SEAM_DROP
 CEIL = GLASS[4] + 0.1                             # cap ceiling underside, rests on the glass
 TOP = CEIL + TOP_T
 cx, cy = BW / 2, BL / 2                           # board frame -> centred frame
+MX = -1                                           # board x runs the other way in the case (v1 put the reset on the wrong side)
 
 # battery back plane (z at the USB end, slope along +y) and the floor under it
 Z_HI = GLASS[4] - STACK_HI - CLEAR_Z
@@ -80,7 +81,7 @@ def base():
     b = b.cut(prism(IW, IL, plane_z(0) - 5, SEAM + 1, POCKET_R).cut(below(plane_z(0))))
     ring = (prism(IW + 2 * TONGUE[0], IL + 2 * TONGUE[0], SEAM - 0.01, SEAM + TONGUE[1], POCKET_R + TONGUE[0])
             .cut(prism(IW, IL, SEAM - 1, SEAM + TONGUE[1] + 1, POCKET_R)))
-    ring = ring.cut(cq.Workplane("XY").box(10, 7, 10).translate((-OW / 2, RESET_Y - cy, SEAM + 2)))
+    ring = ring.cut(cq.Workplane("XY").box(10, 7, 10).translate((MX * -OW / 2, RESET_Y - cy, SEAM + 2)))
     b = b.union(ring).cut(ribs_side()).union(keyring())
     w, z0, z1 = USB
     return b.cut(cq.Workplane("XY").box(w, 10, z1 + 5 - z0).translate((0, -OL / 2, (z0 + z1 + 5) / 2)))
@@ -127,7 +128,7 @@ def cap():
     rebate_l = IL + 2 * (TONGUE[0] + TONGUE_CLEAR)
     c = c.cut(prism(rebate_w, rebate_l, SEAM - 1, SEAM + TONGUE[1] + 0.2, POCKET_R + TONGUE[0] + TONGUE_CLEAR))
     c = c.cut(prism(IW, IL, SEAM - 1, CEIL, POCKET_R))
-    gx, gy = GLASS[0] + GLASS[2] / 2 - cx, GLASS[1] + GLASS[3] / 2 - cy
+    gx, gy = MX * (GLASS[0] + GLASS[2] / 2 - cx), GLASS[1] + GLASS[3] / 2 - cy
     win = (cq.Workplane("XY").workplane(offset=CEIL - 1).center(gx, gy).rect(*WIN).extrude(TOP - CEIL + 2)
            .edges("|Z").fillet(1.0))
     c = c.cut(win).cut(ribs_top())
@@ -138,16 +139,16 @@ def cap():
     w, ln, slit, gap = FLAP
     for x, y in BUTTONS:                             # U-shaped slit, hinge on the screen side, thinned from below
         y0 = y - cy - w / 2
-        u = (cq.Workplane("XY").workplane(offset=CEIL - 1).center(x - cx, y0 - slit + (ln + slit) / 2)
+        u = (cq.Workplane("XY").workplane(offset=CEIL - 1).center(MX * (x - cx), y0 - slit + (ln + slit) / 2)
              .rect(w + 2 * slit, ln + slit).extrude(TOP - CEIL + 2).edges("|Z").fillet(w / 2 + slit - 0.01)
-             .cut(cq.Workplane("XY").workplane(offset=CEIL - 2).center(x - cx, y0 + (ln + 1) / 2)
+             .cut(cq.Workplane("XY").workplane(offset=CEIL - 2).center(MX * (x - cx), y0 + (ln + 1) / 2)
                   .rect(w, ln + 1).extrude(TOP - CEIL + 4).edges("|Z").fillet(w / 2 - 0.01)))
-        under = (cq.Workplane("XY").workplane(offset=CEIL - 1).center(x - cx, y0 + ln / 2).rect(w + 2 * slit, ln)
+        under = (cq.Workplane("XY").workplane(offset=CEIL - 1).center(MX * (x - cx), y0 + ln / 2).rect(w + 2 * slit, ln)
                  .extrude(2.03 + gap - CEIL + 1))
         c = c.cut(u).cut(under)
     rx0, rx1 = -OW / 2 - 1, 3.2 - cx                 # through the wall and over the switch body (to x = 3.2 on the board)
     c = c.cut(cq.Workplane("XY").box(rx1 - rx0, RESET_W + 1.0, RESET_TOP - SEAM + 1)
-              .translate(((rx0 + rx1) / 2, RESET_Y - cy, (SEAM - 1 + RESET_TOP) / 2)))
+              .translate((MX * (rx0 + rx1) / 2, RESET_Y - cy, (SEAM - 1 + RESET_TOP) / 2)))
     w, z0, z1 = USB
     return c.cut(cq.Workplane("XY").box(w, 10, z1 - SEAM + 1).translate((0, -OL / 2, (SEAM - 1 + z1) / 2)))
 
@@ -155,7 +156,7 @@ def cap():
 def dummies():
     """Board, glass, buttons, reset, battery connector, USB-C guess and the battery wedge, centred frame."""
     def blk(x0, y0, z0, w, l, h):
-        return cq.Workplane("XY").box(w, l, h).translate((x0 + w / 2 - cx, y0 + l / 2 - cy, z0 + h / 2))
+        return cq.Workplane("XY").box(w, l, h).translate((MX * (x0 + w / 2 - cx), y0 + l / 2 - cy, z0 + h / 2))
     d = {
         "pcb": blk(0, 0, -PCB_T, BW, BL, PCB_T),
         "glass": blk(GLASS[0], GLASS[1], 0, GLASS[2], GLASS[3], GLASS[4]),
