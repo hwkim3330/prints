@@ -38,9 +38,9 @@ Open-top tray for the Jetson Nano Developer Kit (B01/A02 carrier, 100 x 80 mm), 
 The board drops onto four square pegs in its 3 mm corner holes (86 x 58 mm pattern, no screws); walls stop
 just under the PCB top, floor slots under the board. `out/tray.stl`, `out/tray.gcode.3mf` (40 min, 26 g).
 
-`case.py`: the closed three-part version, 106 x 86 x 55 mm, R10 corners, with the Arducam B0179 (IMX219)
-looking out of the front above the ports. Base = low tray with a solid floor; frame = the walls, every
-opening a notch from its bottom edge and printed upside down, so no bridges anywhere; camera rails inside
-the front wall (the board slides in by its edges); top = flat plate with the fan grille, printed face-down
-(try a second colour). Pegs, no screws. `FAN_TOP` is an estimate (38 mm) but the camera already gives the
-fan 6 mm of room. `out/case.gcode.3mf` = all three, 2 h 36 m, 81 g.
+`case.py`: the closed two-part version, 106 x 86 x 54 mm, R10 corners, with the Arducam B0179 (IMX219)
+looking out of the front above the ports. Base = low tray with a solid floor; lid = walls + top in one,
+printed upside down (smooth top), every opening a notch from its bottom edge, so no bridges anywhere.
+The camera slides up into two rails inside the front wall (by its edges) and rests on the USB stacks once
+the lid is on. Pegs, no screws. `FAN_TOP` is an estimate (38 mm); the lid leaves 5 mm over it.
+`out/case.gcode.3mf` = both parts, 2 h 33 m, 79 g.

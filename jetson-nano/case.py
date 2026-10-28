@@ -1,19 +1,21 @@
-"""Three-part case for the Jetson Nano Developer Kit (B01 / A02 carrier, heatsink + fan on) with the Arducam
+"""Two-part case for the Jetson Nano Developer Kit (B01 / A02 carrier, heatsink + fan on) with the Arducam
 B0179 (IMX219 8 MP) looking out of the front, above the ports (Bambu A1, PLA, no supports, no bridges,
 no screws, no clips).
 
-  case_base.stl   a low tray: solid floor, walls up to just under the PCB top, the board drops onto four
-                  square pegs in its corner holes (as tray.py). A 1.2 mm tongue on top of the left and right
-                  walls (and the back corners) locates the frame. Printed floor-down.
-  case_frame.stl  the walls. Every opening that meets its bottom edge is a notch cut up from that edge (ports
-                  on the front, microSD/exhaust at the back), and it prints upside down, so a notch's closed
-                  end is just a step: nothing to bridge. Rows of round holes high on the sides for the
-                  heatsink's exhaust, the camera window on the front, two rails inside the front wall that
-                  the camera board slides down into (by its edges, so its screw holes don't matter).
-  case_top.stl    a flat plate with a round-hole grille over the fan and a short skirt that drops inside the
-                  frame. Printed face-down: the top is the smooth bed face. Try another colour.
+  case_base.stl  a low tray: solid floor, walls up to just under the PCB top, the board drops onto four
+                 square pegs in its corner holes (as tray.py). A 1.2 mm tongue on top of the left and right
+                 walls (and the back corners) locates the lid. Printed floor-down.
+  case_lid.stl   walls + top in one, printed upside down (the top is the smooth bed face). Every opening
+                 that meets its bottom edge is a notch cut up from that edge (ports on the front,
+                 microSD/exhaust at the back), so a notch's closed end is just a step: nothing to bridge.
+                 Round-hole grille over the fan, rows of round holes high on the sides, the camera window
+                 on the front and two rails inside the front wall, hanging from the ceiling.
 
-Seams chamfered on both edges; 1.2 mm chamfer at the bottom and the top; outer corners R10.
+Camera: slide the board up into the rails from the lid's open bottom (ribbon plugged in, lens to the
+window) until it touches the ceiling; with the lid on, its bottom edge rests on the USB stacks, so it is
+trapped between them and the ceiling. The rails grip it by its edges, so its screw holes don't matter.
+
+Seam chamfered on both edges; 1.2 mm chamfer at the bottom and the top; outer corners R10.
 
 Board data as in tray.py (SBC Model Framework "jetsonnano"); ports along y = 0 in board coordinates:
 barrel jack x 2, HDMI/DP stack x 14, USB 3.0 stacks x 36 and 53, RJ45 x 68.5, micro-USB x 88.
@@ -22,7 +24,7 @@ ribbon out of the bottom edge). FAN_TOP (PCB top -> top of the fan) is an estima
 the PCB underside to the heatsink top, plus a 10 mm fan); the camera already makes the box taller than that.
 
 Run:  uv run --with cadquery --with trimesh --with numpy --with scipy --with networkx --with manifold3d \\
-        --with rtree --with matplotlib python case.py   ->  out/case_{base,frame,top}.stl, out/case_preview.png
+        --with rtree --with matplotlib python case.py   ->  out/case_base.stl, out/case_lid.stl, out/case_preview.png
 """
 import os
 
@@ -49,9 +51,8 @@ BOTTOM_CHAMFER = 1.2
 SEAM_CHAMFER = 0.6
 TOP_CHAMFER = 1.2               # chamfers, not fillets, at the bed
 FAN_TOP = float(os.environ.get("FAN_TOP", "38.0"))   # PCB top -> fan top (estimate, see above)
-FAN_GAP = 2.5                   # fan top -> top plate underside, at least
+FAN_GAP = 5.0                   # fan top -> ceiling, at least (FAN_TOP is an estimate)
 TOP_T = 2.4
-SKIRT = (1.26, 2.0, 0.2)        # top plate skirt: thickness (3 lines), height, clearance
 TONGUE = (1.2, 2.0)             # base wall tongue: thickness, height
 TONGUE_CLEAR = 0.2
 TONGUE_KEEP = 9.0               # tongue along the back wall from each corner
@@ -73,7 +74,8 @@ CAM_X = 0.0                     # camera centre (x); the ports below take the wh
 CAM_WIN = 9.0                   # round window, outer edge chamfered
 CAM_SLOT = 1.3                  # rail groove for the 1 mm board
 CAM_GRIP = 1.5                  # how far the rails reach over the board's edges
-CAM_ABOVE_PORTS = 1.5           # front wall between the tallest notch and the camera's ledge
+CAM_ON_USB = 0.2                # camera board bottom edge above the USB stacks' top
+CAM_TOP_GAP = 0.6               # camera board top edge -> ceiling
 
 IW, ID = BW + 2 * CLEAR, BH + 2 * CLEAR
 OW, OD = IW + 2 * WALL, ID + 2 * WALL
@@ -81,12 +83,13 @@ PCB_Z = FLOOR + STANDOFF_H
 PCB_TOP = PCB_Z + PCB_T
 JOINT = PCB_TOP - SEAM_DROP
 NOTCH_TOP = PCB_TOP + max(p[3] for p in PORTS) + MARGIN
-CAM_Z = NOTCH_TOP + CAM_ABOVE_PORTS + 1.0       # camera board bottom edge, on a 1 mm ledge
+USB_TOP = PCB_TOP + [p[3] for p in PORTS if p[0] == "usb x4"][0]
+CAM_Z = USB_TOP + CAM_ON_USB                    # camera board bottom edge, resting on the USB stacks
 CAM_Y = -ID / 2 + CAM_LENS_H + 0.5              # camera board front face (lens 0.5 behind the wall)
 LENS_Z = CAM_Z + CAM[1] - CAM_LENS_TOP
-TOP_IN = max(PCB_TOP + FAN_TOP + FAN_GAP, CAM_Z + CAM[1] + 1.0)   # top plate underside
+TOP_IN = max(PCB_TOP + FAN_TOP + FAN_GAP, CAM_Z + CAM[1] + CAM_TOP_GAP)   # ceiling
 H = TOP_IN + TOP_T
-RAIL_TOP = TOP_IN                               # rails run to the frame's top edge (its bed face); the skirt skips them
+RAIL_Z = NOTCH_TOP + 1.0                        # rails start over the USB notch
 MOD_C = (MODULE[0] + MODULE[2] / 2 - BW / 2, MODULE[1] + MODULE[3] / 2 - BH / 2)
 
 
@@ -141,30 +144,29 @@ def notch(wp, offset, x, w, top):
 
 
 def cam_rails():
-    """Two rails on the inside of the front wall; the board slides down between them from the open top
-    (before the top plate goes on) and stops on a ledge. Each rail grips CAM_GRIP of the board edge from
-    the front (a post from the wall) and the back (a post joined round the outside of the edge)."""
+    """Two rails on the inside of the front wall, from the ceiling down to just over the USB notch. Each
+    grips CAM_GRIP of the board edge from the front (a post from the wall) and the back (a post joined round
+    the outside of the edge)."""
     r = None
     y0, yb = -ID / 2 - 0.5, CAM_Y + CAM_SLOT
     for s in (-1, 1):
         e = CAM_X + s * CAM[0] / 2                        # board edge
         xin, xout = e - s * CAM_GRIP, e + s * (CAM_SLOT - CAM[2] + 2.0)
         xa, xb = min(xin, xout), max(xin, xout)
-        parts = [blk(xa, xb, y0, CAM_Y, CAM_Z - 1.0, RAIL_TOP),                       # front post
-                 blk(xa, xb, yb, yb + 1.6, CAM_Z - 1.0, RAIL_TOP),                    # back post
+        parts = [blk(xa, xb, y0, CAM_Y, RAIL_Z, TOP_IN + 0.5),                        # front post
+                 blk(xa, xb, yb, yb + 1.6, RAIL_Z, TOP_IN + 0.5),                     # back post
                  blk(min(e + s * 0.3, xout), max(e + s * 0.3, xout), CAM_Y - 0.01, yb + 0.01,
-                     CAM_Z - 1.0, RAIL_TOP),                                         # round the edge
-                 blk(xa, xb, CAM_Y - 0.01, yb + 0.01, CAM_Z - 1.0, CAM_Z)]            # ledge
+                     RAIL_Z, TOP_IN + 0.5)]                                          # round the edge
         for p in parts:
             r = p if r is None else r.union(p)
     return r
 
 
-def frame():
+def lid():
     """Use orientation (sits on the base at z = JOINT)."""
-    f = (shell(JOINT, TOP_IN - JOINT).faces("<Z").edges().chamfer(SEAM_CHAMFER)
-         .faces(">Z").edges().chamfer(SEAM_CHAMFER))
-    f = f.cut(pocket(JOINT - 1, TOP_IN - JOINT + 2))
+    f = (shell(JOINT, H - JOINT).faces("<Z").edges().chamfer(SEAM_CHAMFER)
+         .faces(">Z").edges().chamfer(TOP_CHAMFER))
+    f = f.cut(pocket(JOINT - 1, TOP_IN - JOINT + 1))
     f = f.cut(tongue(JOINT - 1, TONGUE[1] + TONGUE_CLEAR + 1, TONGUE_CLEAR))
     for _, x0, x1, h in PORTS:
         f = f.cut(notch("XZ", OD / 2 - WALL - 1, (x0 + x1) / 2 - BW / 2, x1 - x0 + 2 * MARGIN, PCB_TOP + h + MARGIN))
@@ -184,20 +186,10 @@ def frame():
     side = vent_pts(ID - 2 * CORNER)
     for x0 in (OW / 2 - WALL - 1, -OW / 2 - 1):                              # right, left
         f = f.cut(cq.Workplane("YZ").workplane(offset=x0).pushPoints(side).circle(HOLE_D / 2).extrude(WALL + 2))
-    return f.cut(cq.Workplane("XZ").workplane(offset=-OD / 2 - 1)            # back
-                 .pushPoints(vent_pts(IW - 2 * CORNER)).circle(HOLE_D / 2).extrude(WALL + 2))
-
-
-def top():
-    """Use orientation (sits on the frame at z = TOP_IN)."""
-    t = (shell(TOP_IN, TOP_T).faces(">Z").edges().chamfer(TOP_CHAMFER)
-         .faces("<Z").edges().chamfer(SEAM_CHAMFER))
-    t = t.union(pocket(TOP_IN - SKIRT[1], SKIRT[1] + 0.01, -SKIRT[2])
-                .cut(pocket(TOP_IN - SKIRT[1] - 1, SKIRT[1] + 2, -SKIRT[2] - SKIRT[0]))
-                .cut(blk(CAM_X - CAM[0] / 2 - 5, CAM_X + CAM[0] / 2 + 5, -OD, -ID / 2 + 10,
-                         TOP_IN - SKIRT[1] - 1, TOP_IN + 0.01)))     # gap for the camera rails
+    f = f.cut(cq.Workplane("XZ").workplane(offset=-OD / 2 - 1)            # back
+              .pushPoints(vent_pts(IW - 2 * CORNER)).circle(HOLE_D / 2).extrude(WALL + 2))
     pts = [(MOD_C[0] + x, MOD_C[1] + y) for x, y in hole_grid(50, 50) if x * x + y * y <= 25 ** 2]
-    return t.cut(cq.Workplane("XY").workplane(offset=TOP_IN - 1).pushPoints(pts).circle(HOLE_D / 2)
+    return f.cut(cq.Workplane("XY").workplane(offset=TOP_IN - 1).pushPoints(pts).circle(HOLE_D / 2)
                  .extrude(TOP_T + 2))
 
 
@@ -216,7 +208,7 @@ def box(size, centre):
 
 
 if __name__ == "__main__":
-    bm, fm, tm = mesh(base()), mesh(frame()), mesh(top())
+    bm, fm = mesh(base()), mesh(lid())
     pcb = box([BW, BH, PCB_T], [0, 0, PCB_Z + PCB_T / 2])
     for x, y in HOLES:
         h = trimesh.creation.cylinder(radius=1.5, height=PCB_T + 1)
@@ -230,7 +222,7 @@ if __name__ == "__main__":
              "gpio": box([5.1, 51, 8.5], [94.5 - BW / 2, 45.5 - BH / 2, PCB_TOP + 4.25])}
     for name, x0, x1, h in PORTS:      # each port runs 12 mm in from the front edge and sticks out 1 mm
         parts[name] = box([x1 - x0, 13, h], [(x0 + x1) / 2 - BW / 2, -BH / 2 + 5.5, PCB_TOP + h / 2])
-    shells = (("base", bm), ("frame", fm), ("top", tm))
+    shells = (("base", bm), ("lid", fm))
     probs = 0
     for n, m in parts.items():
         for o, om in shells:
@@ -238,8 +230,8 @@ if __name__ == "__main__":
             if v > 0.05:
                 print(f"  {n} hits {o} ({v:.1f} mm3)")
                 probs += 1
-    for i in range(3):
-        for j in range(i + 1, 3):
+    for i in range(2):
+        for j in range(i + 1, 2):
             if trimesh.boolean.intersection([shells[i][1], shells[j][1]], engine="manifold").volume > 0.05:
                 print(f"  {shells[i][0]} hits {shells[j][0]}")
                 probs += 1
@@ -250,11 +242,11 @@ if __name__ == "__main__":
             print("  camera view blocked along", np.round(d, 2))
             probs += 1
     print("clearance problems:", probs)
-    print(f"case {OW:.1f} x {OD:.1f} x {H:.1f} mm; seams at z = {JOINT:.1f} and {TOP_IN:.1f}; "
+    print(f"case {OW:.1f} x {OD:.1f} x {H:.1f} mm; seam at z = {JOINT:.1f}; "
           f"lens at z = {LENS_Z:.1f}; fan clearance {TOP_IN - PCB_TOP - FAN_TOP:.1f} mm")
 
     flip = trimesh.transformations.rotation_matrix(np.pi, [1, 0, 0])
-    for name, m, f in (("case_base", bm, False), ("case_frame", fm, True), ("case_top", tm, True)):
+    for name, m, f in (("case_base", bm, False), ("case_lid", fm, True)):
         m = m.copy()
         if f:
             m.apply_transform(flip)
@@ -278,9 +270,9 @@ if __name__ == "__main__":
     insides = [(pcb, "#2d6a4f"), (parts["heatsink+fan"], "#555555"), (cam, "#2d6a4f"), (lens, "#111111")] + \
               [(parts[p[0]], "#9a9a9a") for p in PORTS]
     fig = plt.figure(figsize=(18, 7), facecolor="white")
-    views = [("closed (front)", 18, -75, [(bm, "#e8e6e1"), (fm, "#e8e6e1"), (tm, "#3b3b3d")]),
-             ("closed (back)", 30, 115, [(bm, "#e8e6e1"), (fm, "#e8e6e1"), (tm, "#3b3b3d")]),
-             ("exploded", 25, -60, [(bm, "#e8e6e1"), (up(fm, 30), "#e8e6e1"), (up(tm, 60), "#3b3b3d")] + insides)]
+    views = [("closed (front)", 18, -75, [(bm, "#e8e6e1"), (fm, "#f2f1ee")]),
+             ("closed (back)", 30, 115, [(bm, "#e8e6e1"), (fm, "#f2f1ee")]),
+             ("open", 25, -60, [(bm, "#e8e6e1"), (up(fm, 45), "#f2f1ee")] + insides)]
     for k, (title, e, a, ms) in enumerate(views):
         ax = fig.add_subplot(1, 3, k + 1, projection="3d")
         for m, c in ms:
