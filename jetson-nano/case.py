@@ -1,16 +1,15 @@
 """Two-part case for the Jetson Nano Developer Kit (B01 / A02 carrier, heatsink + fan on) (Bambu A1, PLA,
-no supports, no screws, no clips).
+no supports, no bridges, no screws, no clips).
 
-  case_base.stl  floor + walls up to just over the ports, one clean window per port group on the front.
-                 The board drops onto four square pegs in its corner holes (same as tray.py).
-                 Printed floor-down.
-  case_lid.stl   the cap over the heatsink and fan: a round-hole grille over the fan, rows of round holes
-                 on the sides for the heatsink's exhaust. It sits on the base with a short skirt inside the
-                 left and right walls and at the four corners (the ports and the heatsink take the middle of
-                 the front and back). Printed top-down, so the top face is the smooth bed side.
+  case_base.stl  a low tray: solid floor, walls up to just under the PCB top, the board drops onto four
+                 square pegs in its corner holes (as tray.py). A 1.2 mm tongue on top of the left and right
+                 walls (and the back corners) locates the lid. Printed floor-down.
+  case_lid.stl   the cap: comes down over the board to the base. Every opening on the walls is a notch cut
+                 up from its bottom edge (ports on the front, microSD/exhaust at the back, camera ribbon on
+                 the left), so printed top-down a notch's closed end is just a step: nothing to bridge.
+                 Round-hole grille over the fan, rows of round holes high on the sides for the heatsink.
 
-The joint line is a deliberate groove (both edges chamfered); the bottom edge has a 1.2 mm chamfer so the
-box looks like it floats a little. Outer corners R10.
+Seam all round at the PCB top, both edges chamfered; 1.2 mm chamfer at the bottom; outer corners R10.
 
 Board data as in tray.py (SBC Model Framework "jetsonnano"); ports along y = 0 in board coordinates:
 barrel jack x 2, HDMI/DP stack x 14, USB 3.0 stacks x 36 and 53, RJ45 x 68.5, micro-USB x 88.
@@ -47,32 +46,30 @@ TOP_CHAMFER = 1.2               # lid prints top-down: a chamfer, not a fillet, 
 FAN_TOP = float(os.environ.get("FAN_TOP", "38.0"))   # PCB top -> fan top (estimate, see above)
 LID_GAP = 2.5                   # fan top -> lid underside
 LID_T = 2.0
-SKIRT_T = 1.26                  # 3 lines
-SKIRT_H = 3.0
-SKIRT_CLEAR = 0.2
-CORNER_RETURN = 9.0             # skirt along the front/back walls from each corner
-JOINT_OVER_PORTS = 3.0          # wall left above the tallest window
+TONGUE = (1.2, 2.0)             # base wall tongue: thickness, height
+TONGUE_CLEAR = 0.2
+TONGUE_KEEP = 9.0               # tongue along the back wall from each corner
+SEAM_DROP = 0.3                 # seam just under the PCB top
 
-# front windows (board x from, board x to, height over the PCB top), each with MARGIN all round but the bottom
+# front notches (board x from, board x to, height over the PCB top), MARGIN on the sides and top
 PORTS = [("barrel", 2.0, 11.0, 11.0), ("hdmi/dp", 14.0, 30.0, 14.5), ("usb x4", 36.0, 67.5, 16.0),
          ("rj45", 68.5, 84.5, 13.5), ("micro-usb", 88.0, 96.0, 3.5)]
-MARGIN = 0.8
+MARGIN = 0.7
 WIN_R = 1.0
 SD_SLOT = (40.0, 7.0)           # back wall, under the module edge (microSD on the module underside), also exhaust
 MODULE = (13.0, 33.0, 70.0, 45.0)   # board x, y, w, d of the module + heatsink footprint
-HOLE_D, HOLE_P = 3.0, 5.0
+HOLE_D, HOLE_P = 3.0, 5.0       # vent holes and their pitch
 # Camera ribbon (Arducam 8 MP IMX219, 15-pin 1 mm FFC): the CSI connectors are on the board's left edge
-# (board y ~36); the ribbon leaves through a notch in the left wall at the joint, so the lid closes over it.
-RIBBON = (24.0, 1.2, 47.0)      # notch width, depth, centre (board y)       # vent holes and their pitch
+# (board y ~36); the ribbon leaves through a notch in the lid's left wall, over the base wall.
+RIBBON = (24.0, 1.5, 47.0)      # notch width, height, centre (board y)
 
 IW, ID = BW + 2 * CLEAR, BH + 2 * CLEAR
 OW, OD = IW + 2 * WALL, ID + 2 * WALL
 PCB_Z = FLOOR + STANDOFF_H
 PCB_TOP = PCB_Z + PCB_T
-JOINT = PCB_TOP + max(p[3] for p in PORTS) + MARGIN + JOINT_OVER_PORTS
+JOINT = PCB_TOP - SEAM_DROP
 LID_IN = PCB_TOP + FAN_TOP + LID_GAP           # lid underside
 H = LID_IN + LID_T
-LID_H = H - JOINT
 MOD_C = (MODULE[0] + MODULE[2] / 2 - BW / 2, MODULE[1] + MODULE[3] / 2 - BH / 2)
 
 
@@ -103,38 +100,42 @@ def base():
                 .rect(STANDOFF_S, STANDOFF_S).extrude(STANDOFF_H + 0.01).edges("|Z").fillet(1.0))
     b = b.union(cq.Workplane("XY").workplane(offset=PCB_Z - 0.01).pushPoints(HOLES)
                 .rect(PEG_S, PEG_S).extrude(PEG_L + 0.01).faces(">Z").edges().chamfer(0.4))
-    for _, x0, x1, h in PORTS:
-        w, hh = x1 - x0 + 2 * MARGIN, h + MARGIN
-        b = b.cut(cq.Workplane("XZ").workplane(offset=OD / 2 - WALL - 1)      # XZ faces -y: front wall
-                  .center((x0 + x1) / 2 - BW / 2, PCB_TOP + hh / 2).rect(w, hh).extrude(WALL + 2)
-                  .edges("|Y").fillet(WIN_R))
-    b = b.cut(cq.Workplane("XZ").workplane(offset=-OD / 2 - 1)
-              .center(MOD_C[0], PCB_TOP + 1.0 + SD_SLOT[1] / 2).slot2D(*SD_SLOT).extrude(WALL + 2))
-    b = b.cut(cq.Workplane("XY").workplane(offset=JOINT - RIBBON[1])
-              .center(-OW / 2 + WALL / 2, RIBBON[2] - BH / 2).rect(WALL + 2, RIBBON[0]).extrude(5))
-    # floor vents, hidden under the board, clear of the standoffs
-    return b.cut(cq.Workplane("XY").workplane(offset=-1).pushPoints(hole_grid(70, 45)).circle(HOLE_D / 2)
-                 .extrude(FLOOR + 2))
+    return b.union(tongue(JOINT - 0.01, TONGUE[1] + 0.01, 0.0))
+
+
+def tongue(z0, h, grow):
+    """Ring on the inner half of the left/right walls and the back corners (the front has the ports, the
+    back middle the microSD), minus the ribbon notch. grow > 0 gives the lid's matching rebate."""
+    t = pocket(z0, h, TONGUE[0] + grow).cut(pocket(z0 - 1, h + 2, -1.0 if grow else 0.0))   # rebate: overlap the empty pocket, no coincident faces
+    t = t.cut(cq.Workplane("XY").workplane(offset=z0 - 1).center(0, -OD / 2).rect(OW + 2, 12).extrude(h + 2))
+    t = t.cut(cq.Workplane("XY").workplane(offset=z0 - 1).center(0, OD / 2)
+              .rect(IW - 2 * TONGUE_KEEP, 2 * WALL + 6).extrude(h + 2))
+    return t.cut(cq.Workplane("XY").workplane(offset=z0 - 1).center(-IW / 2, RIBBON[2] - BH / 2)
+                 .rect(8, RIBBON[0] - 2 * grow).extrude(h + 2))
+
+
+def notch(wp, offset, x, w, top):
+    """Opening cut up from the lid's bottom edge (z = JOINT) to z = top, rounded top corners."""
+    n = (cq.Workplane(wp).workplane(offset=offset).center(x, (JOINT - 1 + top) / 2)
+         .rect(w, top - JOINT + 1).extrude(WALL + 2))
+    return n.edges("|X" if wp == "YZ" else "|Y").fillet(min(WIN_R, w / 2 - 0.01))
 
 
 def lid():
     """Use orientation (sits on the base at z = JOINT)."""
-    l = shell(JOINT, LID_H).faces(">Z").edges().chamfer(TOP_CHAMFER).faces("<Z").edges().chamfer(SEAM_CHAMFER)
+    l = shell(JOINT, H - JOINT).faces(">Z").edges().chamfer(TOP_CHAMFER).faces("<Z").edges().chamfer(SEAM_CHAMFER)
     l = l.cut(pocket(JOINT - 1, LID_IN - JOINT + 1))
-    ring = pocket(JOINT - SKIRT_H, SKIRT_H + 0.01, -SKIRT_CLEAR).cut(pocket(JOINT - SKIRT_H - 1, SKIRT_H + 2,
-                                                                      -SKIRT_CLEAR - SKIRT_T))
-    mid = IW - 2 * CORNER_RETURN
-    ring = ring.cut(cq.Workplane("XY").workplane(offset=JOINT - SKIRT_H - 1).rect(mid, OD + 2).extrude(SKIRT_H + 2))
-    ring = ring.cut(cq.Workplane("XY").workplane(offset=JOINT - SKIRT_H - 1)      # ribbon passes the skirt
-                    .center(-IW / 2, RIBBON[2] - BH / 2).rect(6, RIBBON[0]).extrude(SKIRT_H + 2))
-    l = l.union(ring)
+    l = l.cut(tongue(JOINT - 1, TONGUE[1] + TONGUE_CLEAR + 1, TONGUE_CLEAR))
+    for _, x0, x1, h in PORTS:
+        l = l.cut(notch("XZ", OD / 2 - WALL - 1, (x0 + x1) / 2 - BW / 2, x1 - x0 + 2 * MARGIN, PCB_TOP + h + MARGIN))
+    l = l.cut(notch("XZ", -OD / 2 - 1, MOD_C[0], SD_SLOT[0], PCB_TOP + 1.0 + SD_SLOT[1]))
+    l = l.cut(notch("YZ", -OW / 2 - 1, RIBBON[2] - BH / 2, RIBBON[0], JOINT + RIBBON[1]))
     # top grille over the fan
     pts = [(MOD_C[0] + x, MOD_C[1] + y) for x, y in hole_grid(50, 50) if x * x + y * y <= 25 ** 2]
     l = l.cut(cq.Workplane("XY").workplane(offset=LID_IN - 1).pushPoints(pts).circle(HOLE_D / 2).extrude(LID_T + 2))
-    # side vents: left, right and back, a band of holes at heatsink height
-    band = (LID_H - LID_T - 6.0, 3)
-    zc = JOINT + 3.0 + band[0] / 2
-    rows = [zc + (i - 1) * HOLE_P * 0.866 for i in range(band[1])]
+    # side vents: left, right and back, three rows high up, level with the heatsink fins and the fan
+    rows = [LID_IN - 6.0 - i * HOLE_P * 0.866 for i in range(3)]
+
     def vent_pts(span):
         return [(x + (HOLE_P / 2 if k % 2 else 0), z) for k, z in enumerate(rows)
                 for x in np.arange(-span / 2 + 2, span / 2 - 2 + 1e-6, HOLE_P)
@@ -148,7 +149,7 @@ def lid():
 
 def mesh(wp):
     path = os.path.join(OUT, "_tmp.stl")
-    cq.exporters.export(wp, path)
+    cq.exporters.export(wp, path, tolerance=0.01, angularTolerance=0.05)
     m = trimesh.load(path)
     os.remove(path)
     return m
@@ -183,7 +184,7 @@ if __name__ == "__main__":
         print("  lid hits base")
         probs += 1
     print("clearance problems:", probs)
-    print(f"case {OW:.1f} x {OD:.1f} x {H:.1f} mm, joint at z = {JOINT:.1f}, base {JOINT:.1f} + lid {LID_H:.1f}")
+    print(f"case {OW:.1f} x {OD:.1f} x {H:.1f} mm, seam at z = {JOINT:.1f}")
 
     lp = lm.copy()                                     # print top-down
     lp.apply_transform(trimesh.transformations.rotation_matrix(np.pi, [1, 0, 0]))
