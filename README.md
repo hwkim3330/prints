@@ -37,3 +37,10 @@ History: two prints came loose. One was a Pi-shaped frame with round pins, the o
 Open-top tray for the Jetson Nano Developer Kit (B01/A02 carrier, 100 x 80 mm), heatsink + fan left on.
 The board drops onto four square pegs in its 3 mm corner holes (86 x 58 mm pattern, no screws); walls stop
 just under the PCB top, floor slots under the board. `out/tray.stl`, `out/tray.gcode.3mf` (40 min, 26 g).
+
+`case.py`: the closed two-part version, 106 x 86 x 51 mm, R10 corners. The base comes up to just over the
+ports (one window per port group on the front, microSD/exhaust slot at the back, camera-ribbon notch on the
+left at the joint); the lid is a cap with a round-hole grille over the fan and hole rows on three sides,
+printed top-down. Pegs as in the tray, no screws. `FAN_TOP` (PCB top -> fan top) is an estimate (38 mm):
+measure it before printing the lid (`FAN_TOP=36 python case.py`). `out/case.gcode.3mf` = both parts,
+2 h 48 m, 73 g.
