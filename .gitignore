@@ -4,3 +4,4 @@ sliced/
 .DS_Store
 __pycache__/
 t-display/ref/
+sensor-box/ref/

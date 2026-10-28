@@ -5,10 +5,11 @@ Body: hexagon 240 mm across corners (fits the 256 mm bed), 208 across flats, 130
 Corner columns inside stiffen the walls and carry pilot holes for a lid later (lidar not decided).
 Rail bars are a separate small print.
 
-Camera (measured): red holder 40.16 x 35.03 x 3.51 sits in the wall window, the clear housing
-31.74 x 30.25 (10.9 proud, flush with the red holder's top edge) goes out through the wall, M2 screws at 34.1 x 29.0 from outside.
-The camera mounts straight on the wall: the red holder sits in a 1 mm pocket inside a 4 mm pad, the
-clear housing goes out through an opening, 4 x M2 x 6 from outside. No separate plates.
+Camera: Arducam U6251 case (red holder + clear housing), shapes taken from the maker's CAD, ref/U6251.STEP
+(Cytron's copy; matches the caliper readings: red 40.12 x 35.12 x 3.5, clear 31.5 x 30.5, M2 holes 34.0 x 29.0).
+v10, clean outside: the opening follows the clear housing's rounded outline with an even 0.25 mm gap, the red
+holder sits in a pocket that follows its own outline, and the 4 x M2 x 6 go in from inside, through the red
+holder's 2.4 mm holes into blind pilots in the wall. No screw heads, recess or seams on the outer face.
 
 Design source: github.com/hwkim3330/scout-mini-sensor-box (REV9 sheet-metal box, rev10p panel version).
 Run:  uv run --with cadquery --with trimesh --with numpy --with scipy --with networkx --with manifold3d \\
@@ -22,7 +23,7 @@ import numpy as np
 import trimesh
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-VERSION = "v9"                  # output folder; bump it for a new version and keep the old ones
+VERSION = "v10"                  # output folder; bump it for a new version and keep the old ones
 OUT = os.path.join(HERE, VERSION)
 os.makedirs(OUT, exist_ok=True)
 
@@ -38,20 +39,44 @@ COL = 7.0                       # inner corner column, measured along each wall
 PILOT = 2.6                     # M3 self-tapping
 CLEAR3 = 3.4
 
-# camera (measured 2026-10-27)
+# camera: Arducam U6251 from its STEP. STEP frame: x across, y from the red holder's back (0) to the clear
+# housing's front (14.9), z down. Face-local here: x across, y up, z inwards, red holder's front on the pocket floor.
+CAM_STEP = os.path.join(HERE, "ref", "U6251.STEP")
 CAM_Z = 92.0
-RED = (40.16, 35.03, 3.51)
-CLEARP = (31.74, 30.25, 10.9)
-CAM_WIN = (RED[0] + 0.8, RED[1] + 0.8)
-# The camera mounts straight on the wall (no separate plate): the clear housing goes out through an
-# opening, the red holder sits in a 1 mm pocket on the inside, 4 x M2 x 6 from outside into the red holder.
-PAD = (CAM_WIN[0] + 8, CAM_WIN[1] + 8, 4.0)   # wall thickened to 4 mm around the camera, inside
-CAM_T = 3.0                     # wall left at the opening; the pocket is the last PAD[2] - CAM_T
-CAM_CUT = (CLEARP[0] + 0.6, CLEARP[1] + 0.6)
-CLEAR_DY = (RED[1] - CLEARP[1]) / 2   # the clear housing is flush with the red holder's top edge (cable side down)
-M2_PITCH = (31.90 + 2.2, 26.8 + 2.2)
-M2_HOLES = [(sx * M2_PITCH[0] / 2, sz * M2_PITCH[1] / 2) for sx in (-1, 1) for sz in (-1, 1)]
-M2_CLEAR = 2.4
+CAM_T = 4.5                     # wall in front of the red holder (v9: 3.0): 6.9 mm of the clear housing shows,
+                                # and the M2 screws from inside have 3 mm to bite with 1.5 mm left outside
+POCKET_D = 1.0                  # the red holder (3.5 thick) sits this deep in the pad
+GAP = 0.25                      # opening round the clear housing, every side
+POCKET_GAP = 0.3                # pocket round the red holder, every side
+M2_PILOT = (1.7, 3.0)           # M2 self-tapping into PLA: diameter, depth from the pocket floor
+
+
+def _cam_parts():
+    parts = [s.rotate((0, 0, 0), (0, 1, 0), 180).rotate((0, 0, 0), (1, 0, 0), -90).translate((0, CAM_Z, CAM_T + 3.5))
+             for s in cq.importers.importStep(CAM_STEP).solids().vals()]
+    red = max(parts, key=lambda s: s.BoundingBox().xlen)
+    clr = max((s for s in parts if s is not red), key=lambda s: s.BoundingBox().zlen)
+    return parts, red, clr
+
+
+def _section(solid, z):
+    """Biggest face of a solid's section at depth z, moved to z = 0."""
+    sec = solid.intersect(cq.Face.makePlane(400, 400, basePnt=(0, CAM_Z, z), dir=(0, 0, 1)))
+    return max(sec.Faces(), key=lambda f: f.Area()).translate((0, 0, -z))
+
+
+CAM_PARTS, RED_S, CLEAR_S = _cam_parts()
+_red = _section(RED_S, CAM_T + 1.75)            # mid plate
+OPENING = cq.Face.makeFromWires(_section(CLEAR_S, CAM_T - 1.6).outerWire().offset2D(GAP)[0])   # just above the ribbon notch
+POCKET = cq.Face.makeFromWires(_red.outerWire().offset2D(POCKET_GAP)[0])
+M2_HOLES = sorted((round(w.BoundingBox().center.x, 2), round(w.BoundingBox().center.y - CAM_Z, 2))
+                  for w in _red.innerWires() if w.BoundingBox().xlen < 3)          # (+-17.0, +-14.5)
+M2_CLEAR = 2.4                  # the red holder's holes
+_ob, _pb = OPENING.BoundingBox(), POCKET.BoundingBox()
+CAM_WIN = (_pb.xlen, _pb.ylen)                  # older names, used by the v5 templates
+CAM_CUT = (_ob.xlen, _ob.ylen)
+CLEAR_DY = _ob.center.y - CAM_Z
+PAD = (CAM_WIN[0] + 8, CAM_WIN[1] + 8, CAM_T + POCKET_D)   # wall thickened round the camera, inside
 
 # vents: low intake, the open top is the exhaust
 VENT_W, VENT_H, VENT_PITCH, VENT_Z, VENT_N = 5.0, 24.0, 10.0, 18.0, 0   # v9: no low slots (open top)
@@ -59,11 +84,10 @@ VENT_W, VENT_H, VENT_PITCH, VENT_Z, VENT_N = 5.0, 24.0, 10.0, 18.0, 0   # v9: no
 # high vents between the camera pads and the top lip: exhaust even with a plate on top
 VENT_HI_X, VENT_HI_Z, VENT_HI_H = (), 115.5, 8.0      # v9: replaced by a row of small round holes
 VENT_ROW = (9, 9.0, 3.5, 119.5)  # holes per face, pitch, diameter, height: exhaust if a plate covers the top
-RECESS = (CAM_WIN[0] - 2.0, M2_PITCH[1] + 5.0, 1.0)   # outside recess round the camera: M2 heads sit flush
 TOP_CHAMFER = 1.0
 CABLE_NOTCH = 20.0             # slot below the red holder's pocket for the camera cable
-RIBBON = (18.0, 0.8)           # channel for the ribbon that leaves between the clear housing and the red
-                               # holder: from the opening's lower edge down to the slot, so it is not pinched
+RIBBON = (18.0, 0.8)           # channel for the ribbon, which leaves through a 17.5 x 1.5 notch at the bottom of the clear
+                               # housing, right on the red holder: from the opening's lower edge down to the slot
 
 # floor
 GRID = 20.0
@@ -160,30 +184,30 @@ def body():
     return b.cut(cq.Workplane("XY").pushPoints(bolts).circle(M4 / 2).extrude(FLOOR))
 
 
+def _prism(face, z0, z1):
+    return cq.Workplane("XY").add(cq.Solid.extrudeLinear(face.translate((0, 0, z0)), cq.Vector(0, 0, z1 - z0)))
+
+
 def camera_mount(b, place):
-    """Pad, pocket for the red holder, opening for the clear housing and M2 holes, in face-local
+    """Pad, pocket for the red holder, opening for the clear housing and M2 pilots, in face-local
     coordinates (XY on the outer face, +Z inwards) mapped by `place`."""
     cz = CAM_Z
+    pb, ob = POCKET.BoundingBox(), OPENING.BoundingBox()
     b = b.union(place(cq.Workplane("XY").center(0, cz).rect(PAD[0], PAD[1]).extrude(PAD[2])))
     y0, d = cz - PAD[1] / 2, PAD[2] - WALL                # 45 deg slope under the pad instead of a flat ledge
     b = b.union(place(cq.Workplane("YZ").polyline([(y0, WALL), (y0, PAD[2]), (y0 - d, WALL)]).close()
                       .extrude(PAD[0] / 2, both=True)))
     # cable slot from the pocket down through the pad's lower edge
-    b = b.cut(place(cq.Workplane("XY").workplane(offset=CAM_T).center(0, cz - CAM_WIN[1] / 2 - 5)
+    b = b.cut(place(cq.Workplane("XY").workplane(offset=CAM_T).center(0, pb.ymin - 5)
                     .rect(CABLE_NOTCH, 10).extrude(PAD[2])))
-    top = cz + CLEAR_DY - CAM_CUT[1] / 2 + 0.5          # just inside the opening's lower edge
-    bot = cz - CAM_WIN[1] / 2 - 10
+    top = ob.ymin + 0.5                                  # just inside the opening's lower edge
+    bot = pb.ymin - 10
     b = b.cut(place(cq.Workplane("XY").workplane(offset=CAM_T - RIBBON[1]).center(0, (top + bot) / 2)
                     .rect(RIBBON[0], top - bot).extrude(RIBBON[1] + 0.01)))
-    b = b.cut(place(cq.Workplane("XY").workplane(offset=CAM_T).center(0, cz).rect(*CAM_WIN)
-                    .extrude(PAD[2]).edges("|Z").fillet(1)))
-    b = b.cut(place(cq.Workplane("XY").center(0, cz + CLEAR_DY).rect(*CAM_CUT).extrude(PAD[2] + 2)
-                    .translate((0, 0, -1))))
-    # shallow recess on the outside round the camera so the M2 heads sit below the surface
-    b = b.cut(place(cq.Workplane("XY").center(0, cz).rect(RECESS[0], RECESS[1]).extrude(RECESS[2] + 1)
-                    .translate((0, 0, -1)).edges("|Z").fillet(3)))
-    return b.cut(place(cq.Workplane("XY").pushPoints([(x, cz + y) for x, y in M2_HOLES]).circle(M2_CLEAR / 2)
-                       .extrude(PAD[2] + 2).translate((0, 0, -1))))
+    b = b.cut(place(_prism(POCKET, CAM_T, PAD[2] + 1)))
+    b = b.cut(place(_prism(OPENING, -1, PAD[2] + 1)))
+    return b.cut(place(cq.Workplane("XY").workplane(offset=CAM_T - M2_PILOT[1])
+                       .pushPoints([(x, cz + y) for x, y in M2_HOLES]).circle(M2_PILOT[0] / 2).extrude(M2_PILOT[1] + 0.01)))
 
 
 def cam_test():
@@ -211,15 +235,13 @@ def mesh(wp):
 
 
 def camera_dummy(i):
-    """Red holder in its pocket + clear housing standing out through the wall, for clearance checks."""
-    red = cq.Workplane("XY").center(0, CAM_Z).rect(RED[0], RED[1]).extrude(RED[2]).translate((0, 0, CAM_T + 0.05))
-    clr = (cq.Workplane("XY").center(0, CAM_Z + CLEAR_DY).rect(CLEARP[0], CLEARP[1]).extrude(CLEARP[2])
-           .translate((0, 0, CAM_T + 0.05 - CLEARP[2])))
-    return mesh(on_face(i, red)), mesh(on_face(i, clr))
+    """The U6251 solids (red holder, clear housing, tripod insert, board screws) placed on face i."""
+    return [on_face(i, cq.Workplane("XY").add(p)).val() for p in CAM_PARTS]
 
 
 if __name__ == "__main__":
-    bm = mesh(body())
+    bw = body()
+    bm = mesh(bw)
     rb = mesh(rail_bar())
     assy = [("body", bm)]
     for sy in (-1, 1):
@@ -228,14 +250,15 @@ if __name__ == "__main__":
         assy.append(("bar", b))
     probs = 0
     for i in range(6):
-        red, clr = camera_dummy(i)
-        for n, part in (("red holder", red), ("clear housing", clr)):
-            for other in (bm,):
-                v = trimesh.boolean.intersection([part, other], engine="manifold").volume
-                if v > 0.5:
-                    print(f"  camera {i} {n} hits a part: {v:.1f} mm3")
-                    probs += 1
-        assy.append(("camdummy", red))
+        parts = camera_dummy(i)
+        for k, p in enumerate(parts):
+            v = bw.val().intersect(p).Volume()          # exact B-rep check against the maker's CAD
+            if v > 0.001:
+                print(f"  camera {i} part {k} hits the body: {v:.3f} mm3")
+                probs += 1
+        for k, p in enumerate(parts):
+            assy.append(("camred" if p is parts[CAM_PARTS.index(RED_S)] else
+                         "camclear" if p is parts[CAM_PARTS.index(CLEAR_S)] else "camsmall", mesh(cq.Workplane().add(p))))
     agx = trimesh.creation.box(AGX_BOX)
     agx.apply_translation([AGX_C[0], AGX_C[1], FLOOR + AGX_BOX[2] / 2 + 0.5])
     if trimesh.boolean.intersection([agx, bm], engine="manifold").volume > 0.1:
@@ -249,13 +272,13 @@ if __name__ == "__main__":
         mm = m.copy()
         mm.apply_translation([128 - mm.bounds.mean(0)[0], 128 - mm.bounds.mean(0)[1], -mm.bounds[0][2]])
         mm.export(os.path.join(OUT, name + ".stl"))
-    trimesh.util.concatenate([m for n, m in assy if n != "camdummy"]).export(os.path.join(OUT, "assembly.stl"))
+    trimesh.util.concatenate([m for n, m in assy if not n.startswith("cam")]).export(os.path.join(OUT, "assembly.stl"))
 
     import matplotlib
     matplotlib.use("Agg")
     import matplotlib.pyplot as plt
     from mpl_toolkits.mplot3d.art3d import Poly3DCollection
-    col = {"body": "#d9a441", "bar": "#333333", "camdummy": "#c0392b"}
+    col = {"body": "#d9a441", "bar": "#333333", "camred": "#c0392b", "camclear": "#a9c6e8", "camsmall": "#888888"}
 
     def shade(m, c):
         k = np.clip(m.face_normals @ np.array([-.4, -.5, .8]), 0, 1) * 0.6 + 0.4
