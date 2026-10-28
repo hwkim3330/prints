@@ -69,3 +69,8 @@ kept in `cyd/ref/`, not committed), and opens its port end from the top edge to 
 (y 8..46), so USB-C, micro-USB and the wire power connector all come out on any board revision. Snap fit, no
 screws. `out/case.gcode.3mf` = both parts (screen part face down), 43 min, 16 g.
 
+`sleeve.py`: a tube that slides over the original Xiaomi Mi Power Bank 10000 mAh (NDY-02-AN, 90 x 60.4 x 22 mm)
+and carries the CYD case on top: open at both ends, printed standing (no bridges, no supports), a 2.5 mm rim on
+the wide face that follows the case outline; stick the case in with foam tape, join with a short USB-A to USB-C
+cable. `out/sleeve.gcode.3mf`: 1 h 08 m, 39 g.
+
