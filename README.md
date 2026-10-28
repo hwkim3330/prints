@@ -31,3 +31,9 @@ Open-top tray for the LILYGO T-ETH Elite (ESP32-S3 + W5500 + PoE) with a Pi HAT 
 - `out/tray.stl` is the same tray for M2.5 self-tapping screws instead of pins.
 
 History: two prints came loose. One was a Pi-shaped frame with round pins, the other had round bosses sticking out past the tray. Every part now sits on a full flat face.
+
+## jetson-nano/
+
+Open-top tray for the Jetson Nano Developer Kit (B01/A02 carrier, 100 x 80 mm), heatsink + fan left on.
+The board drops onto four square pegs in its 3 mm corner holes (86 x 58 mm pattern, no screws); walls stop
+just under the PCB top, floor slots under the board. `out/tray.stl`, `out/tray.gcode.3mf` (40 min, 26 g).
