@@ -1,13 +1,13 @@
 """Tiny pumpkin case for the LILYGO TTGO T-Display (ESP32, 1.14" 135x240) with a 1000 mAh TW102050 cell taped
 to its back (Bambu A1, PLA, no supports, no bridges, no screws, no clips).
 
-Two parts: a base tray that holds board + battery and a thin cap with the screen window, the two board buttons
-and a pumpkin stem + leaf; shallow grooves on the cap and the base walls are the pumpkin's ribs
+Two parts: a base tray that holds board + battery, with a key-ring loop on the far end, and a thin cap with the
+screen window and two press flaps over the board buttons; shallow grooves on the cap and the base walls are the pumpkin's ribs
 (made for red-orange PLA; the face is drawn on the screen). The cap's lip slides over a tongue on the base (friction fit, like jetson-nano/case.py).
 
 The battery's connector end makes the stack a wedge (user-measured 18.8 mm at the USB end, 13 mm at the other),
 so the base floor follows it: the bottom sits flat on the desk and the screen leans ~6 degrees toward you,
-with the USB-C cable leaving from the back next to the stem.
+with the USB-C cable leaving from the back, the key-ring loop at the other end.
 
 Board data: LILYGO's official STEP (github.com/Xinyuan-LilyGO/TTGO-T-Display, 3d_file/T-Display.step), ref/.
 Board frame: x across (0..25.16), y along (0 = USB/button end), z = 0 on the PCB's screen-side face.
@@ -26,7 +26,9 @@ os.makedirs(OUT, exist_ok=True)
 BW, BL, PCB_T = 25.16, 51.48, 1.0
 GLASS = (3.72, 10.65, 17.6, 32.0, 1.56)          # x0, y0, w, l, thickness
 BUTTONS = [(4.5, 3.37), (20.98, 3.37)]            # GPIO0 / GPIO35 tact switches, 2.03 tall
-BUTTON_D = 5.4
+FLAP = (5.4, 8.5, 0.6, 0.15)                      # press flap over each button: width, length (hinge towards the
+                                                  # screen), slit, gap above the switch; thinned to ~0.7 mm so it bends
+KEYRING = (10.0, 8.0, 3.0, 4.5)                   # loop on the base's far end: width, reach past the wall, thickness, hole
 RESET_Y, RESET_W, RESET_TOP = 11.9, 4.6, 2.3      # side-push reset on the x = 0 edge
 STACK_HI, STACK_LO = 18.8, 13.0                   # glass face -> battery back, USB end / far end (measured)
 
@@ -79,19 +81,21 @@ def base():
     ring = (prism(IW + 2 * TONGUE[0], IL + 2 * TONGUE[0], SEAM - 0.01, SEAM + TONGUE[1], POCKET_R + TONGUE[0])
             .cut(prism(IW, IL, SEAM - 1, SEAM + TONGUE[1] + 1, POCKET_R)))
     ring = ring.cut(cq.Workplane("XY").box(10, 7, 10).translate((-OW / 2, RESET_Y - cy, SEAM + 2)))
-    b = b.union(ring).cut(ribs_side())
+    b = b.union(ring).cut(ribs_side()).union(keyring())
     w, z0, z1 = USB
     return b.cut(cq.Workplane("XY").box(w, 10, z1 + 5 - z0).translate((0, -OL / 2, (z0 + z1 + 5) / 2)))
 
 
-def stem():
-    """Pumpkin stem and a leaf on the USB end, flat in the cap, clear of the USB opening."""
-    h = TOP - SEAM
-    st = (cq.Workplane("XY").workplane(offset=SEAM).rect(4.6, 9.0).extrude(h).edges("|Z").fillet(1.2)
-          .rotate((0, 0, 0), (0, 0, 1), -14).translate((-9.5, -OL / 2 - 1.5, 0)))
-    leaf = (cq.Workplane("XY").workplane(offset=SEAM).ellipse(6.0, 2.6).extrude(h)
-            .rotate((0, 0, 0), (0, 0, 1), 28).translate((10.0, -OL / 2 - 1.2, 0)))
-    return st.union(leaf)
+def keyring():
+    """Loop on the far end (the USB cable leaves the other end), its underside in the base's tilted bottom plane."""
+    w, reach, t, d = KEYRING
+    y0 = OL / 2 - WALL / 2
+    lobe = (cq.Workplane("XY").workplane(offset=-40).center(0, y0 + reach / 2).rect(w, reach).extrude(60)
+            .union(cq.Workplane("XY").workplane(offset=-40).center(0, OL / 2 + reach - w / 2).circle(w / 2).extrude(60)))
+    lobe = lobe.cut(cq.Workplane("XY").workplane(offset=-40).center(0, OL / 2 + reach - w / 2).circle(d / 2).extrude(60))
+    lobe = lobe.cut(prism(IW, IL, -40, 20, POCKET_R))   # never into the cavity
+    bottom = plane_z(0) - FLOOR
+    return lobe.cut(below(bottom)).intersect(below(bottom + t / math.cos(math.radians(TILT))))
 
 
 RIB = (1.0, 0.45)                                 # groove width, depth
@@ -100,7 +104,9 @@ RIB = (1.0, 0.45)                                 # groove width, depth
 def ribs_top():
     out = None
     for x in (-(WIN[0] / 2 + 3.6), WIN[0] / 2 + 3.6):
-        g = cq.Workplane("XY").box(RIB[0], OL - 14, 2).translate((x, 3, TOP + 1 - RIB[1]))   # stops short of the buttons
+        y0 = BUTTONS[0][1] - cy - FLAP[0] / 2 + FLAP[1] + 2.0      # stops 2 mm past the press flaps' hinges
+        y1 = OL / 2 - 4.0
+        g = cq.Workplane("XY").box(RIB[0], y1 - y0, 2).translate((x, (y0 + y1) / 2, TOP + 1 - RIB[1]))
         out = g if out is None else out.union(g)
     return out
 
@@ -115,7 +121,7 @@ def ribs_side():
 
 
 def cap():
-    c = prism(OW, OL, SEAM, TOP, CORNER).union(stem())
+    c = prism(OW, OL, SEAM, TOP, CORNER)
     c = c.faces(">Z").edges().chamfer(0.6)
     rebate_w = IW + 2 * (TONGUE[0] + TONGUE_CLEAR)
     rebate_l = IL + 2 * (TONGUE[0] + TONGUE_CLEAR)
@@ -129,9 +135,16 @@ def cap():
     hi = cq.Sketch().rect(WIN[0] + 1.22, WIN[1] + 1.22).vertices().fillet(1.61)
     c = c.cut(cq.Workplane("XY").workplane(offset=TOP - 0.7).center(gx, gy)
               .placeSketch(lo, hi.moved(cq.Location(cq.Vector(0, 0, 0.71)))).loft())   # 45 deg bevel round the window
-    for x, y in BUTTONS:
-        c = c.cut(cq.Workplane("XY").workplane(offset=CEIL - 1).center(x - cx, y - cy).circle(BUTTON_D / 2)
-                  .extrude(TOP - CEIL + 2))
+    w, ln, slit, gap = FLAP
+    for x, y in BUTTONS:                             # U-shaped slit, hinge on the screen side, thinned from below
+        y0 = y - cy - w / 2
+        u = (cq.Workplane("XY").workplane(offset=CEIL - 1).center(x - cx, y0 - slit + (ln + slit) / 2)
+             .rect(w + 2 * slit, ln + slit).extrude(TOP - CEIL + 2).edges("|Z").fillet(w / 2 + slit - 0.01)
+             .cut(cq.Workplane("XY").workplane(offset=CEIL - 2).center(x - cx, y0 + (ln + 1) / 2)
+                  .rect(w, ln + 1).extrude(TOP - CEIL + 4).edges("|Z").fillet(w / 2 - 0.01)))
+        under = (cq.Workplane("XY").workplane(offset=CEIL - 1).center(x - cx, y0 + ln / 2).rect(w + 2 * slit, ln)
+                 .extrude(2.03 + gap - CEIL + 1))
+        c = c.cut(u).cut(under)
     rx0, rx1 = -OW / 2 - 1, 3.2 - cx                 # through the wall and over the switch body (to x = 3.2 on the board)
     c = c.cut(cq.Workplane("XY").box(rx1 - rx0, RESET_W + 1.0, RESET_TOP - SEAM + 1)
               .translate(((rx0 + rx1) / 2, RESET_Y - cy, (SEAM - 1 + RESET_TOP) / 2)))
