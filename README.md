@@ -44,3 +44,12 @@ printed upside down (smooth top), every opening a notch from its bottom edge, so
 The camera slides up into two rails inside the front wall (by its edges) and rests on the USB stacks once
 the lid is on. Pegs, no screws. `FAN_TOP` is an estimate (38 mm); the lid leaves 5 mm over it.
 `out/case.gcode.3mf` = both parts, 2 h 33 m, 79 g.
+
+## t-display/
+
+`case.py`: tiny pumpkin case for the LILYGO TTGO T-Display with a 1000 mAh TW102050 cell on its back,
+30.8 x 63 mm, 22.5 mm thick at the USB end and 16.7 at the other (the battery's connector makes the stack a
+wedge, so the screen leans ~6 degrees toward you). Base tray + thin cap with the screen window, holes over
+the two board buttons, a notch for the side reset, a stem and a leaf, and shallow rib grooves. Board data
+from LILYGO's official STEP (not committed; github.com/Xinyuan-LilyGO/TTGO-T-Display). Friction tongue,
+no screws/clips/supports/bridges. `out/case.gcode.3mf` = both parts, 34 min, 12 g (red-orange PLA).
