@@ -23,7 +23,7 @@ import numpy as np
 import trimesh
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-VERSION = "v10"                  # output folder; bump it for a new version and keep the old ones
+VERSION = "v11"                  # output folder; bump it for a new version and keep the old ones
 OUT = os.path.join(HERE, VERSION)
 os.makedirs(OUT, exist_ok=True)
 
@@ -83,7 +83,8 @@ VENT_W, VENT_H, VENT_PITCH, VENT_Z, VENT_N = 5.0, 24.0, 10.0, 18.0, 0   # v9: no
 
 # high vents between the camera pads and the top lip: exhaust even with a plate on top
 VENT_HI_X, VENT_HI_Z, VENT_HI_H = (), 115.5, 8.0      # v9: replaced by a row of small round holes
-VENT_ROW = (9, 9.0, 3.5, 119.5)  # holes per face, pitch, diameter, height: exhaust if a plate covers the top
+VENT_ROW = (0, 9.0, 3.5, 119.5)  # v11: none -- nothing on the outer faces; air comes in through the floor cable holes
+                                 # and leaves through the open top (a lid later sits on spacers to keep that gap)
 TOP_CHAMFER = 1.0
 CABLE_NOTCH = 20.0             # slot below the red holder's pocket for the camera cable
 RIBBON = (18.0, 0.8)           # channel for the ribbon, which leaves through a 17.5 x 1.5 notch at the bottom of the clear
@@ -94,6 +95,11 @@ GRID = 20.0
 AGX_C = (0.0, 0.0)              # centred: even cable room all round, holes clear of the rail bars
 AGX_SO = [(AGX_C[0] + sx * 45, AGX_C[1] + sy * 45) for sx in (-1, 1) for sy in (-1, 1)]
 AGX_BOX = (110.0, 110.0, 72.0)
+# v11: AGX cables go down through the floor, one hole each side of the AGX (power one side, LAN/USB the other).
+# In the floor, not the walls: a wall hole would leave a sagging bridge, a floor hole prints as plain perimeter.
+# x 65..95 keeps 10 mm from the AGX edge (x 55); y -20..20 stays clear of the rail bars (y 55..85).
+CABLE_HOLE = (30.0, 40.0, 10.0)  # x size, y size, corner radius
+CABLE_X = 80.0
 
 # rail bars (HOLD: rail pitch; closed slots take rail spacings 206..242 mm)
 RAIL_X = 115.0                  # nominal half rail spacing (HOLD)
@@ -161,7 +167,7 @@ def body():
         b = camera_mount(b, lambda wp: on_face(i, wp))
         n, pitch, d, z = VENT_ROW
         holes = [((k - (n - 1) / 2) * pitch, z) for k in range(n)]
-        b = b.cut(on_face(i, cq.Workplane("XY").pushPoints(holes).circle(d / 2).extrude(WALL + 2).translate((0, 0, -1))))
+        if holes: b = b.cut(on_face(i, cq.Workplane("XY").pushPoints(holes).circle(d / 2).extrude(WALL + 2).translate((0, 0, -1))))
         for x in VENT_HI_X:
             v = (cq.Workplane("XY").center(x, VENT_HI_Z + VENT_HI_H / 2).rect(VENT_W, VENT_HI_H).extrude(WALL + 2)
                  .translate((0, 0, -1)).edges("|Z").fillet(VENT_W / 2 - 0.01))
@@ -180,6 +186,9 @@ def body():
                 if all(abs(gy - sy * BAR_Y) > BAR[1] / 2 + 3 for sy in (-1, 1)):
                     grid.append((gx, gy))
     b = b.cut(cq.Workplane("XY").pushPoints(grid + AGX_SO).circle(CLEAR3 / 2).extrude(FLOOR))
+    for sx in (-1, 1):
+        b = b.cut(cq.Workplane("XY").center(sx * CABLE_X, 0).rect(CABLE_HOLE[0], CABLE_HOLE[1])
+                  .extrude(FLOOR).edges("|Z").fillet(CABLE_HOLE[2]))
     bolts = [(x, sy * BAR_Y) for x in BAR_BOLTS_X for sy in (-1, 1)]
     return b.cut(cq.Workplane("XY").pushPoints(bolts).circle(M4 / 2).extrude(FLOOR))
 
