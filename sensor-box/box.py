@@ -101,10 +101,11 @@ AGX_BOX = (110.0, 110.0, 72.0)
 CABLE_HOLE = (30.0, 40.0, 10.0)  # x size, y size, corner radius
 CABLE_X = 80.0
 
-# rail bars (HOLD: rail pitch; closed slots take rail spacings 206..242 mm)
-RAIL_X = 115.0                  # nominal half rail spacing (HOLD)
-RAIL_SLOT_C = 112.0             # slot centre: closed slots ending 3 mm inside the bar, they take rail
-RAIL_SLOT = (5.5, 18.0)         # spacings 206..242 mm (the old 24 mm slot broke out of the bar end)
+# rail bars. SCOUT MINI OMNI manual V2.1.0, sec. 6.2 p.19: two top rails, 350 long, 16 wide, 230 mm apart
+# (centre to centre). T-slot size and bolt not in the manual: the 5.5 slot takes M5; measure the slot on the robot.
+RAIL_X = 115.0                  # half rail spacing (manual: 230 / 2)
+RAIL_SLOT_C = 115.0             # slot centred on the rail
+RAIL_SLOT = (5.5, 10.0)         # +-2.5 mm play for assembly (was 18 long while the pitch was unknown)
 BAR = (248.0, 30.0, 8.0)
 BAR_Y = 70.0                    # bars run under y 55..85, clear of the AGX holes (y +-45)
 BAR_BOLTS_X = (-60.0, -20.0, 20.0, 60.0)   # all inside the 45 deg floor fillet
