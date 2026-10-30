@@ -14,6 +14,7 @@ top comes out flat and smooth; everything under it points up while printing, so 
   holes are 5 mm with a 10 mm countersink). The arm reaches forward (+y, through camera face 1).
 - lid-v3: King Crab arm (../crab-arm/crab.py, 3 x MG996R + 2 x MG90S). Its turret's 100 x 100 flange takes
   4 x M4 x 20 into M4 nuts trapped under the lid at (+-40, +-40); a hole under the turret lets the J1 lead down.
+  Styled as a king crab's carapace (carapace(): marginal spines in the outline, 0.6 mm engraving on the top).
 - Ribs from the posts to the bosses carry the arm's load into the columns; a slot behind the arm takes its
   cable (servo bus board power + USB) down to the AGX.
 
@@ -108,10 +109,72 @@ def bar(p, q, w, h, z0):
             .rotate((c[0], c[1], 0), (c[0], c[1], 1), math.degrees(math.atan2(d[1], d[0]))))
 
 
+def carapace(p):
+    """lid-v3 only: make the plate read as a king crab's carapace.
+    - Marginal spines on the six edges (2D spines in the plate outline: they print flat, the full plate stays on the
+      bed). The front edge (+y, the arm's side) gets a long rostrum spine in the middle. Corners and posts unchanged.
+    - On the top (the bed face, it prints top-down) only shallow 0.6 mm engraving, like the name: a marginal groove,
+      a groove round the turret's seat, and ring grooves between them that read as the carapace's tubercles."""
+    top = GAP + T
+    for i in range(6):
+        ph = box.phi(i)
+        n = np.array([math.cos(ph), math.sin(ph)])
+        tg = np.array([-n[1], n[0]])
+        row = ((-40, 5, 10), (-22, 7, 11), (0, 9, 12), (22, 7, 11), (40, 5, 10))
+        if i == 1:
+            row = ((-40, 5, 10), (-24, 7, 11), (0, 13, 13), (24, 7, 11), (40, 5, 10))
+        for t, h, w in row:
+            lean = 0.12 * t / 40                # the outer spines lean out a little, towards the corners
+            d = n + tg * lean
+            d = d / np.linalg.norm(d)
+            e = np.array([-d[1], d[0]])
+            c0 = n * box.APO + tg * t - d * 3.0
+            c1 = n * box.APO + tg * t + d * h
+            pts = [c0 - e * w / 2, c0 + e * w / 2, c1 + e * 0.8, c1 - e * 0.8]
+            p = p.union(cq.Workplane("XY").workplane(offset=GAP).polyline([tuple(q) for q in pts]).close().extrude(T))
+    g = (0.6, 1.6)                              # engraving depth, groove width
+    z0 = top - g[0]
+    am = 88.0                                   # marginal groove apothem
+    rm = am / math.cos(math.radians(30))
+    cut = (cq.Workplane("XY").workplane(offset=z0).polygon(6, 2 * (rm + g[1] / 2 / math.cos(math.radians(30))))
+           .polygon(6, 2 * (rm - g[1] / 2 / math.cos(math.radians(30)))).extrude(1))
+    sq = 57.0                                   # groove round the turret flange (100 square)
+    cut = cut.union(cq.Workplane("XY").workplane(offset=z0).rect(2 * sq + g[1], 2 * sq + g[1]).extrude(1)
+                    .edges("|Z").fillet(10).cut(cq.Workplane("XY").workplane(offset=z0 - 1).rect(2 * sq - g[1], 2 * sq - g[1])
+                                                .extrude(3).edges("|Z").fillet(10 - g[1] / 2)))
+    # tubercles: rings on a staggered grid between the two grooves, off the name and the cable slot; bigger ones
+    # towards the middle of each band
+    _, size, _, ty = NAME
+    pitch = 14.0
+    rings = None
+    for j in range(-9, 10):
+        for k in range(-9, 10):
+            x, y = k * pitch + (pitch / 2 if j % 2 else 0), j * pitch * 0.866
+            if max(abs(x * math.cos(box.phi(i)) + y * math.sin(box.phi(i))) for i in range(3)) > am - 6.5:
+                continue
+            if max(abs(x), abs(y)) < sq + 6.5:
+                continue
+            if abs(x) < 36 and abs(y - ty) < size / 2 + 6:
+                continue
+            w, l, cy = CABLE
+            if abs(x) < w / 2 + 6 and abs(y - cy) < l / 2 + 5:
+                continue
+            band = min(am - max(abs(x * math.cos(box.phi(i)) + y * math.sin(box.phi(i))) for i in range(3)),
+                       max(abs(x), abs(y)) - sq)
+            ro = 3.0 if band < 9 else 4.0       # outer radius: 6 / 8 mm rings
+            r = (cq.Workplane("XY").workplane(offset=z0).center(x, y).circle(ro).circle(ro - g[1]).extrude(1))
+            rings = r if rings is None else rings.union(r)
+    if rings is not None:
+        cut = cut.union(rings)
+    return p.cut(cut)
+
+
 def lid():
     """In use orientation: plate from z = GAP to GAP + T, posts and ribs below it, z = 0 on the body's rim."""
     p = (cq.Workplane("XY").workplane(offset=GAP).polygon(6, 2 * box.L).extrude(T).edges("|Z").fillet(box.FILLET)
          .faces(">Z").edges().chamfer(1.0))
+    if ARM == "crab":
+        p = carapace(p)
     cs = corners()
     for c in cs:
         p = p.union(cq.Workplane("XY").center(*c).rect(POST, POST).extrude(GAP + 0.1)

@@ -9,6 +9,13 @@ Architecture (5 servos, all horn-driven, screws only, every part prints flat wit
 The claw: a chunky propodus with the fixed finger (pollex), both toothed, the dactylus swinging in a recess
 cut into the propodus top so the two rows of teeth meet in one plane.
 
+King-crab styling (Paralithodes), decoration only, every interface as before: spines are 2D blunt triangles in the plate
+outlines (they print flat, tips >= 1.6 mm): rows leaning distally along the upper arm (merus) and forearm (carpus),
+round the turntable rim, the turret ring and flange, up the cradle plates. Tubercles (blunt cones, 1.8 mm) only on
+faces that are up on the bed: Q' outer face, F's face towards Q, the claw's top. The chela: bulbous palm, thick
+fixed finger hooking up, arched moving finger with spines on its back and a hooked tip, blunt molar teeth.
+lid-v3 (sensor-box/lid.py, ARM=crab) gets the carapace: marginal spines with a rostrum, engraved grooves + tubercles.
+
 Frames: world = lid top centre, z up, the arm reaches +y (camera face 1) at yaw 0. J2..J4 axes run along x.
 Servo frame (for both servo types): origin on the spline axis in the plane of the tab undersides, +z = spline
 direction, +y from the spline towards the far end of the case.
@@ -117,15 +124,26 @@ def x_of(f, z):
 
 
 # ---------------------------------------------------------------- cadquery helpers
+def coords_of(r):
+    """polygon ring coordinates without the closing point and without (near) duplicate points (OCC rejects them)"""
+    out = []
+    for q in list(r.coords)[:-1]:
+        if not out or math.dist(q, out[-1]) > 1e-3:
+            out.append(q)
+    if math.dist(out[0], out[-1]) <= 1e-3:
+        out.pop()
+    return out
+
+
 def ext(poly, x0, x1):
     """shapely polygon in (y, z) extruded along x from x0 to x1 (holes cut)."""
     poly = poly.buffer(0)
     polys = list(poly.geoms) if poly.geom_type == "MultiPolygon" else [poly]
     out = None
     for pg in polys:
-        s = cq.Workplane("YZ").workplane(offset=x0).polyline(list(pg.exterior.coords)[:-1]).close().extrude(x1 - x0)
+        s = cq.Workplane("YZ").workplane(offset=x0).polyline(coords_of(pg.exterior)).close().extrude(x1 - x0)
         for h in pg.interiors:
-            s = s.cut(cq.Workplane("YZ").workplane(offset=x0 - 1).polyline(list(h.coords)[:-1]).close().extrude(x1 - x0 + 2))
+            s = s.cut(cq.Workplane("YZ").workplane(offset=x0 - 1).polyline(coords_of(h)).close().extrude(x1 - x0 + 2))
         out = s if out is None else out.union(s)
     return out
 
@@ -135,9 +153,9 @@ def exz(poly, z0, z1):
     poly = poly.buffer(0)
     out = None
     for pg in (list(poly.geoms) if poly.geom_type == "MultiPolygon" else [poly]):
-        s = cq.Workplane("XY").workplane(offset=z0).polyline(list(pg.exterior.coords)[:-1]).close().extrude(z1 - z0)
+        s = cq.Workplane("XY").workplane(offset=z0).polyline(coords_of(pg.exterior)).close().extrude(z1 - z0)
         for h in pg.interiors:
-            s = s.cut(cq.Workplane("XY").workplane(offset=z0 - 1).polyline(list(h.coords)[:-1]).close().extrude(z1 - z0 + 2))
+            s = s.cut(cq.Workplane("XY").workplane(offset=z0 - 1).polyline(coords_of(h)).close().extrude(z1 - z0 + 2))
         out = s if out is None else out.union(s)
     return out
 
@@ -150,25 +168,71 @@ def hull(*cs):
     return unary_union([circ((y, z), r) for y, z, r in cs]).convex_hull
 
 
-def spikes(edge_pts, n_at, h, base=9.0):
-    """Little king-crab spines on an outline: triangles at given y along a polyline edge, pointing up (+z)."""
-    ys, zs = zip(*edge_pts)
-    tris = []
-    for y in n_at:
-        z = np.interp(y, ys, zs)
-        tris.append(Polygon([(y - base / 2, z - 2), (y + base / 2, z - 2), (y + 1.5, z + h)]))
-    return unary_union(tris)
+def spine(p, ang, h, w, tip=1.6, sink=3.0):
+    """One king-crab spine on an outline: a blunt triangle standing on point p, pointing at ang (deg), h out of the
+    outline, w wide at the outline, a flat tip (>= 1.2 mm so a 0.4 nozzle draws it), sunk `sink` into the plate."""
+    a = math.radians(ang)
+    d = np.array([math.cos(a), math.sin(a)])
+    n = np.array([-d[1], d[0]])
+    p = np.asarray(p, float)
+    b, t = p - d * sink, p + d * h
+    return Polygon([tuple(b - n * w / 2), tuple(b + n * w / 2), tuple(t + n * tip / 2), tuple(t - n * tip / 2)])
 
 
-def teeth(p0, p1, n, h, up, phase=0.0):
-    """Saw teeth along p0 -> p1 pointing to the left (up=1) or right (up=-1) of the direction."""
+def edge_at(poly, y, top=True):
+    """The outline point above (top) or below a given y."""
+    from shapely.geometry import LineString
+    seg = LineString([(y, -500), (y, 500)]).intersection(poly.boundary)
+    zs = [g.y for g in getattr(seg, "geoms", [seg])]
+    return (y, max(zs) if top else min(zs))
+
+
+def spine_row(poly, at, top=True, lean=25.0):
+    """Spines along the top (or bottom) edge, leaning `lean` deg towards +y (distally, like a crab's leg spines).
+    at = [(y, h, w), ...]"""
+    return unary_union([spine(edge_at(poly, y, top), (90 - lean) if top else (-90 + lean), h, w) for y, h, w in at])
+
+
+def knobs(pts, x, up, r=(2.6, 1.0), h=1.8):
+    """Tubercles: blunt cones standing on the face x = const, pointing +x (up = 1) or -x, at (y, z) points.
+    Only used on faces that are up when printing (they print as small cones on the top surface)."""
+    out = None
+    for y, z in pts:
+        c = cq.Solid.makeCone(r[0], r[1], h + 0.3, cq.Vector(x - 0.3 * up, y, z), cq.Vector(up, 0, 0))
+        out = cq.Workplane("XY").add(c) if out is None else out.union(cq.Workplane("XY").add(c))
+    return out
+
+
+def knob_grid(area, pitch, r=2.6):
+    """Staggered points inside a shapely area (already shrunk where knobs must not go)."""
+    a = area.buffer(-r)
+    if a.is_empty:
+        return []
+    y0, z0, y1, z1 = a.bounds
+    dz = pitch * 0.866
+    nz, ny = int((z1 - z0) / dz + 1e-6), int((y1 - y0) / pitch + 1e-6)
+    z0, y0 = (z0 + z1 - nz * dz) / 2, (y0 + y1 - ny * pitch) / 2      # centred grid
+    a = a.buffer(0.05)
+    pts = []
+    for j in range(nz + 1):
+        z = z0 + j * dz
+        for y in np.arange(y0 - (pitch / 2 if j % 2 else 0), y1 + pitch, pitch):
+            if a.contains(Point(y, z)):
+                pts.append((float(y), float(z)))
+    return pts
+
+
+def molars(p0, p1, n, h, up, phase=0.0):
+    """Blunt crushing teeth (rounded bumps, king-crab molars) along p0 -> p1, to the left (up=1) or right (up=-1)."""
     p0, p1 = np.array(p0, float), np.array(p1, float)
     d = p1 - p0
     nrm = np.array([-d[1], d[0]]) / np.linalg.norm(d) * up
     pts = [tuple(p0)]
     for k in range(n):
         a, b = (k + phase) / n, (k + phase + 1) / n
-        pts += [tuple(p0 + d * a), tuple(p0 + d * (a + b) / 2 + nrm * h), tuple(p0 + d * b)]
+        for t in np.linspace(0, math.pi, 9):
+            s = a + (b - a) * (1 - math.cos(t)) / 2
+            pts.append(tuple(p0 + d * s + nrm * h * math.sin(t) ** 0.7))
     pts.append(tuple(p1))
     return pts
 
@@ -214,8 +278,16 @@ def horn_cuts(part, f, kind, plate, skip=lambda yz: False, screw_d=2.4, centre=7
 def turret():
     """Fixed base on the lid: square flange (4 x M4 to lid-v3), J1 servo standing in a box, thrust ring on top."""
     fl = sbox(-FLANGE[0] / 2, -FLANGE[0] / 2, FLANGE[0] / 2, FLANGE[0] / 2)
-    t = exz(Polygon(fl.buffer(-6).buffer(6, 16).exterior), 0, FLANGE[1])
+    fl = Polygon(fl.buffer(-6).buffer(6, 16).exterior)
+    # king-crab look: spines on the flange's left, right and front edges (the back edge stays straight: the lid's cable
+    # slot is right behind it), and low ridges round the ring
+    fs = [spine((sx * FLANGE[0] / 2, y), 90 - sx * 90, h, 11) for sx in (-1, 1) for y, h in ((-24, 6), (0, 8), (24, 6))]
+    fs += [spine((x, FLANGE[0] / 2), 90, h, 11) for x, h in ((-24, 6), (0, 8), (24, 6))]
+    t = exz(unary_union([fl] + fs), 0, FLANGE[1])
     ring = circ((0, 0), R_T).difference(circ((0, 0), R_T - 3.0))
+    t = t.union(exz(unary_union([spine((R_T * math.cos(a), R_T * math.sin(a)), math.degrees(a), 4.0, 7)
+                                 for a in np.radians(np.arange(0, 360, 45) + 22.5)]).difference(circ((0, 0), R_T - 3.0)),
+                    0, 14))   # low buttress ridges round the ring (full-height ridges cost 45 min of print time)
     t = t.union(exz(ring, 0, ZU - 0.5))         # 0.5 under the turntable: it takes the arm's tipping load
     c = -S["C"]                                 # case centre y (Y_s = -y)
     blk = sbox(-S["W"] / 2 - 4.5, c - S["SPAN"] / 2 - 4.5, S["W"] / 2 + 4.5, c + S["SPAN"] / 2 + 4.5)
@@ -235,7 +307,8 @@ def turret():
 def turntable():
     """Disc on the J1 horn with the shoulder cradle: plate A holds the J2 servo by its ears (open notch from the top),
     plate B takes the idler screw."""
-    t = exz(circ((0, 0), R_T), ZU, ZD)
+    t = exz(unary_union([circ((0, 0), R_T)] + [spine((R_T * math.cos(a), R_T * math.sin(a)), math.degrees(a), 4.0, 8)
+                                              for a in np.radians(np.arange(0, 360, 20))]), ZU, ZD)   # spiny rim
     # J1 horn pocket in the disc underside. Its screws go in from the top: skip the holes under the plates
     a, b = ZU - 1, H_T + S["HORN"]
     t = t.cut(exz(circ((0, 0), S["HD"] / 2 + FIT), a, b))
@@ -248,8 +321,13 @@ def turntable():
     c = S["C"]
     prof = sbox(-42, ZD - 0.01, 22, Z2 + 14).buffer(-3).buffer(3, 16)
     prof = unary_union([prof, sbox(-42, ZD - 0.01, 22, ZD + 5)])
-    t = t.union(ext(prof, XA - PB, XA))     # plate A (5 thick)
-    t = t.union(ext(prof, XB - PB, XB))     # plate B
+    # spines up the cradle plates' top edges (they print standing, the spines point up: no overhang). The upper arm's
+    # spacers sweep r 24..40 round J2 over the shoulder range, so the spines stay outside that (back) or under r 23
+    top = Z2 + 14
+    sa = spine((-36, top), 105, 7, 9)
+    sb = unary_union([sa, spine((-13, top), 90, 4.5, 8)])
+    t = t.union(ext(unary_union([prof, sa]), XA - PB, XA))     # plate A (5 thick)
+    t = t.union(ext(unary_union([prof, sb]), XB - PB, XB))     # plate B
     t = t.union(ext(sbox(-42, ZD - 0.01, -37, ZD + 14), XB - PB, XA))     # back wall ties A and B
     # notch for the J2 case, open at the top
     t = t.cut(ext(sbox(-(S["L"] - S["SPL"]) - FIT, Z2 - S["W"] / 2 - FIT, S["SPL"] + FIT, Z2 + 40), XA - PT, XA + 1))
@@ -262,8 +340,17 @@ def turntable():
 
 
 def upper_plate_outline():
+    """The merus: a long spiny leg segment, a row of big spines along the top edge, smaller ones underneath."""
     o = hull((0, 0, 16), (L1, 0, 21))
-    return unary_union([o, spikes([(0, 16), (L1, 21)], (30, 48, 66), 6)])
+    return unary_union([o, spine_row(o, [(22, 6, 9), (35, 8, 10), (48, 9, 10), (61, 8, 10), (73, 6, 9)]),
+                        spine_row(o, [(30, 4, 8), (46, 5, 8), (62, 4, 8)], top=False)])
+
+
+def upper_knobs():
+    """Tubercles on Q' outer face (-x, up on the bed): staggered pairs along the plate, clear of the screw heads."""
+    keep = hull((0, 0, 13), (L1, 0, 17)).difference(unary_union(
+        [circ((0, 0), 12), circ((L1, 0), 12)] + [circ(c, 6.5) for c in SPACERS_U]))
+    return knob_grid(keep, 9.0)
 
 
 def upper_arm_q():
@@ -275,18 +362,28 @@ def upper_arm_q():
 
 def upper_arm_qp():
     p = ext(upper_plate_outline(), *QP)
+    p = p.union(knobs(upper_knobs(), QP[0], -1))
     p = p.cut(ext(unary_union([circ((0, 0), M3C / 2), circ((L1, 0), M3C / 2)] + [circ(c, M3C / 2) for c in SPACERS_U]),
                   QP[0] - 1, QP[1] + 1))
     return p
 
 
 def fore_plate_outline():
+    """The carpus: spines along the top; underneath only beyond the upper arm's spacer when folded."""
     o = hull((0, 0, 15), (L2, 0, 13))
-    return unary_union([o, spikes([(0, 15), (L2, 13)], (30, 46), 5)])
+    return unary_union([o, spine_row(o, [(22, 6, 9), (35, 7, 10), (48, 7, 10), (60, 5, 8)]),
+                        spine_row(o, [(50, 4, 8), (63, 3.5, 7)], top=False)])
+
+
+def fore_knobs():
+    """Tubercles on F's +x face (up on the bed), between the J3 horn and the J4 servo ears, off the spacer screws."""
+    keep = hull((0, 0, 12), (L2, 0, 10)).intersection(sbox(16, -20, 56, 20)).difference(
+        unary_union([circ(c, 6.5) for c in SPACERS_F]))
+    return knob_grid(keep, 8.5, r=2.4)
 
 
 def forearm_f():
-    p = ext(fore_plate_outline(), *F)
+    p = ext(fore_plate_outline(), *F).union(knobs(fore_knobs(), F[1], 1, r=(2.4, 0.9), h=1.6))
     p, _ = horn_cuts(p, "j3_f", "S", F)
     p = servo_cuts(p, "j4", "M", F)
     return p.cut(ext(unary_union([circ(c, M3C / 2) for c in SPACERS_F]), F[0] - 1, F[1] + 1))
@@ -320,18 +417,28 @@ POLLEX_EDGE = ((62.0, 0.0), (104.0, -5.0))
 DACT_EDGE = ((102.0, 2.0), (60.0, 7.0))
 
 
-def palm_outline():
-    palm = hull((26, -14, 8), (25, 14, 10), (58, -14, 8), (56, 16, 9))
-    pollex = Polygon([(50, -22), (80, -20.5), (100, -14), (111, -7)] + teeth(POLLEX_EDGE[1], POLLEX_EDGE[0], 6, 3.0, -1)
-                     + [(52, 2)])
+def palm_base():
+    """The king crab's heavy chela: a bulbous palm (manus) and a thick fixed finger curving up at the tip."""
+    palm = hull((27, -14, 9.5), (27, 15, 10.5), (60, -16, 10), (58, 17, 9.5))
+    pollex = Polygon([(48, -25), (64, -25.5), (80, -23.5), (94, -18.5), (104, -12.5), (110, -6.5), (111.5, -2.5),
+                      (109, -1.5), (106, -3.5)] + molars(POLLEX_EDGE[1], POLLEX_EDGE[0], 5, 2.6, -1) + [(52, 2)])
     return unary_union([palm, pollex])
 
 
+def palm_outline():
+    """the palm with spines: a row on the upper margin behind the moving finger, a row under the palm and the finger"""
+    b = palm_base()
+    sp = [spine_row(b, [(25, 6, 9), (35, 7, 9)], lean=-15),                        # upper margin, behind the dactylus
+          spine_row(b, [(34, 5, 9), (47, 6, 10), (60, 6, 10), (74, 5, 9), (88, 4, 8)], top=False, lean=30)]
+    return unary_union([b] + sp)
+
+
 def dactyl_outline():
-    """closed, in the claw frame"""
-    pts = [(44, 22), (64, 25), (88, 20), (104, 11), (113, 3), (108, -1)] + teeth(DACT_EDGE[0], DACT_EDGE[1], 6, 3.0, 1, 0.5) \
-        + [(50, 4), (44, 2)]
-    return unary_union([Polygon(pts).buffer(0), circ(HINGE, 10)])
+    """closed, in the claw frame: the moving finger, arched, spines on its back, hooked tip, blunt molars"""
+    pts = [(44, 22), (58, 27.5), (74, 27.5), (90, 22.5), (102, 14.5), (110, 6.5), (113, 2.5), (112, -0.5), (108, -1)] \
+        + molars(DACT_EDGE[0], DACT_EDGE[1], 5, 2.6, 1, 0.5) + [(50, 4), (44, 2)]
+    d = Polygon(pts).buffer(0)
+    return unary_union([d, circ(HINGE, 10), spine_row(d, [(62, 4.5, 8), (76, 4.5, 8), (89, 4, 7)], lean=35)])
 
 
 def knuckle_outline():
@@ -358,7 +465,19 @@ def claw():
     # recess the dactylus swings in (0..45 deg open), 0.8 mm all round
     sweep = unary_union([affinity.rotate(dactyl_outline(), a, origin=HINGE) for a in range(0, 46, 3)]).buffer(0.8)
     c = c.cut(ext(sweep, XD[0] - 1.0, XT + 1))
+    # tubercles on the top face (it is up on the bed), wherever the top is solid
+    c = c.union(knobs(claw_knobs(), XT, 1))
     return c
+
+
+def claw_knobs():
+    s = M
+    yc = HINGE[0] - s["C"]
+    open_top = unary_union([
+        sbox(yc - s["SPAN"] / 2 - FIT, HINGE[1] - s["W"] / 2 - FIT, yc + s["SPAN"] / 2 + FIT, HINGE[1] + s["W"] / 2 + FIT),
+        sbox(10, HINGE[1] - 3.5, HINGE[0], HINGE[1] + 3.5),
+        unary_union([affinity.rotate(dactyl_outline(), a, origin=HINGE) for a in range(0, 46, 3)]).buffer(0.8)])
+    return knob_grid(palm_base().buffer(-1.0).difference(open_top.buffer(1.5)), 8.0)
 
 
 def dactyl():
@@ -613,27 +732,44 @@ if __name__ == "__main__":
         return np.outer(k, matplotlib.colors.to_rgb(c))
     bm = box.mesh(box.body())
     bm.apply_translation((0, 0, -box.H - lidmod.GAP - lidmod.T))
-    fig = plt.figure(figsize=(20, 9))
+    fig = plt.figure(figsize=(21, 15))
+
+    def draw(ax, ms, lims, aspect, e, az, title):
+        # one collection for the whole scene, big faces split up: matplotlib sorts by face depth, so this keeps the
+        # painter's order right between parts
+        tris, cols = [], []
+        for m, c in ms:
+            v, f = trimesh.remesh.subdivide_to_size(m.vertices, m.faces, 7.0)
+            m = trimesh.Trimesh(v, f, process=False)
+            tris.append(m.triangles); cols.append(shade(m, c))
+        cols = np.concatenate(cols)
+        ax.add_collection3d(Poly3DCollection(np.concatenate(tris), facecolors=cols, edgecolors=cols, linewidths=0.15))
+        for f, l in zip((ax.set_xlim, ax.set_ylim, ax.set_zlim), lims):
+            f(*l)
+        ax.set_box_aspect(aspect); ax.view_init(e, az); ax.set_axis_off(); ax.set_title(title, fontsize=14)
+
+    def arm(q, keep=lambda n, fr: True):
+        ch = chain(q)
+        out = []
+        for n, (m, fr) in {**meshes, **dummies}.items():
+            if keep(n, fr):
+                w = m.copy(); w.apply_transform(ch[fr])
+                out.append((w, DARK if ("case" in n or "horn" in n) else ORANGE))
+        return out
     for k, (pn, e, az) in enumerate((("home (upright, forearm forward)", 14, -55), ("pick on the lid, claw down", 10, 15),
                                      ("over the front edge, down", 18, -125))):
-        ax = fig.add_subplot(1, 4, k + 1, projection="3d")
-        ch = chain(POSES[pn])
-        scene = [(bm, "#d9a441"), (lm, ORANGE)]
-        for n, (m, fr) in {**meshes, **dummies}.items():
-            w = m.copy(); w.apply_transform(ch[fr])
-            scene.append((w, DARK if ("case" in n or "horn" in n) else ORANGE))
-        for m, c in scene:
-            ax.add_collection3d(Poly3DCollection(m.triangles, facecolors=shade(m, c)))
-        ax.set_xlim(-125, 125); ax.set_ylim(-110, 230); ax.set_zlim(-60, 280)
-        ax.set_box_aspect((250, 340, 340)); ax.view_init(e, az); ax.set_axis_off(); ax.set_title(pn, fontsize=13)
-    ax = fig.add_subplot(1, 4, 4, projection="3d")          # the claw close up, half open
-    ch = chain((0, 0, 0, 0, 35))
-    for n, (m, fr) in {**meshes, **dummies}.items():
-        if fr in "CD" or n in ("j4_horn",):
-            w = m.copy(); w.apply_transform(ch[fr])
-            ax.add_collection3d(Poly3DCollection(w.triangles, facecolors=shade(w, DARK if ("case" in n or "horn" in n) else ORANGE)))
-    ax.set_xlim(-60, 60); ax.set_ylim(L1 + L2 - 20, L1 + L2 + 120); ax.set_zlim(Z2 - 70, Z2 + 70)
-    ax.set_box_aspect((120, 140, 140)); ax.view_init(25, -35); ax.set_axis_off(); ax.set_title("claw, half open", fontsize=13)
+        ax = fig.add_subplot(2, 3, k + 1, projection="3d")
+        draw(ax, [(bm, "#d9a441"), (lm, ORANGE)] + arm(POSES[pn]), ((-125, 125), (-110, 230), (-60, 280)),
+             (250, 340, 340), e, az, pn)
+    ax = fig.add_subplot(2, 3, 4, projection="3d")          # the claw close up, half open
+    draw(ax, arm((0, 0, 0, 0, 35), lambda n, fr: fr in "CD" or n == "j4_horn"),
+         ((-55, 55), (L1 + L2 - 15, L1 + L2 + 120), (Z2 - 65, Z2 + 65)), (110, 135, 130), 18, -18, "claw (chela), half open")
+    ax = fig.add_subplot(2, 3, 5, projection="3d")          # the arm from the side, reaching
+    draw(ax, [(lm, ORANGE)] + arm(POSES["reach forward"]), ((-60, 60), (-60, 290), (-20, 170)), (120, 350, 190), 8, -14,
+         "reach forward (side)")
+    ax = fig.add_subplot(2, 3, 6, projection="3d")          # the carapace lid from above, turret on it
+    draw(ax, [(lm, ORANGE), (meshes["turret"][0], ORANGE)], ((-125, 125), (-125, 125), (-20, 50)), (250, 250, 70), 62, -100,
+         "lid-v3 carapace + turret")
     plt.tight_layout()
-    plt.savefig(os.path.join(HERE, "preview.png"), dpi=70)
+    plt.savefig(os.path.join(HERE, "preview.png"), dpi=80)
     print("torque", [round(t, 2) for t in TORQUE])
