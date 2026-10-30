@@ -83,3 +83,13 @@ Note: the M2 holes (34.1 × 29.0, symmetric on the red holder) sit right beside 
 | Body ↔ rail bar | M4 × 12–16 + nut (the nuts sit in hex pockets in the bar) | 8 |
 | Rail bar → robot rail | M5 + rail slider nut, rail spacing **HOLD** (closed 18 mm slots take rail spacings 206–242 mm) | 4 |
 | (Later) lid → corner columns | M3 self-tapping | 6 |
+
+## Lid v1 "킹크랩" + SO-101 arm ([lid.py](lid.py))
+
+![Lid](lid-v1/preview.png)
+
+- Same hexagon as the body, 5 mm plate, printed top face down (no supports): **2 h 59 m / 133 g** (`lid-v1/lid.gcode.3mf`).
+- Six 9 mm posts land on the corner columns, M3 screws into the existing lid pilots. They hold the lid 10 mm above the rim: the exhaust gap.
+- The arm is the open-source SO-101 follower ([TheRobotStudio/SO-ARM100](https://github.com/TheRobotStudio/SO-ARM100), 6 x Feetech STS3215). Its `Base_SO101` has four countersunk 5 mm holes (x +-27.8 / +-31.8, 69.7 apart); the lid has M4 holes there with hex nut traps in bosses underneath. Screws: 4 x M4 x 30 countersunk + M4 nuts.
+- The arm reaches forward (+y, camera face 1). Ribs run from the posts to the bosses. A 34 x 14 slot behind the arm takes its cable down to the AGX. "킹크랩" is set 0.6 mm into the top in front of the arm.
+- `lid.py` checks the lid against the body (posts resting on the rim, no overlap) and the SO-101 base from its STL (holes clear, flat contact). Put the SO-ARM100 repo in `../ref-dl/` to run that part.
