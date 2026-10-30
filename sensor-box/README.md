@@ -81,7 +81,7 @@ Note: the M2 holes (34.1 × 29.0, symmetric on the red holder) sit right beside 
 |---|---|---|
 | Camera → body | M2 × 6 self-tapping (pan head), from inside, before the AGX goes in | 24 |
 | Body ↔ rail bar | M4 × 12–16 + nut (the nuts sit in hex pockets in the bar) | 8 |
-| Rail bar → robot rail | M5 + rail slider nut, rail spacing **HOLD** (closed 18 mm slots take rail spacings 206–242 mm) | 4 |
+| Rail bar → robot rail | M5 × 10–12 + rail T-nut (slot size still to measure); 230 mm spacing confirmed on the robot (v11 bars sit right) | 4 |
 | (Later) lid → corner columns | M3 self-tapping | 6 |
 
 ## Lid "킹크랩" + robot arm ([lid.py](lid.py))
