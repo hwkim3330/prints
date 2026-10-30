@@ -14,7 +14,7 @@ Files that live in other repos are named by repo and path; copy the `.gcode.3mf`
 | 7 | Robot sensor box v10, one-piece hexagonal body (camera mount from the U6251 CAD, M2 from inside, nothing on the outer face; rail bars after the robot arrives) | PLA, open top | body ~7 h 44 m / 380 g | `sensor-box/v10/` (panel version: `scout-mini-sensor-box/rev10p/`) | after #8 |
 | 8 | Camera test for #7: the wall's camera mount as one piece (check the clear housing in the opening, the red holder in the pocket, M2 x 6 from inside biting into the wall, the ribbon flat in its channel) | PLA | 22 m / 8 g | `sensor-box/v10/cam_test.gcode.3mf` | A4 template: variant 1 (= v5) fits the real camera; print the body next |
 | 9 | Full car body (decide the layer height from #2/#3 first) | PLA white | ~31 h (body) / ~63 h (all) | private testbed repo, `print/PLATES.md` | after #2-#4 |
-| 10 | Sensor box lid v1 "킹크랩": carries an SO-101 arm (4 x M4 x 30 countersunk + nuts), 6 x M3 into the body's corner columns, 10 mm exhaust gap | PLA (PETG if it gets warm) | 2 h 59 m / 133 g | `sensor-box/lid-v1/lid.gcode.3mf` | after the body (#7) |
+| 10 | Sensor box lid "킹크랩" v2: carries an SO-ARM102 arm (4 x M6 x 25 + nuts; v1 = SO-101), 6 x M3 into the body's corner columns, 10 mm exhaust gap | PLA (PETG if it gets warm) | 3 h 01 m / 134 g | `sensor-box/lid-v2/lid.gcode.3mf` | after the body (#7) |
 
 Notes
 - PETG for anything near heat (the sensor box holds a ~60 W computer) or outdoors; PLA only for desk parts and fit tests.

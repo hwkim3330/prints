@@ -1,13 +1,16 @@
-"""Lid for the sensor box ("킹크랩"), carrying an SO-101 robot arm.
+"""Lid for the sensor box ("킹크랩"), carrying a robot arm: SO-ARM102 (lid-v2) or SO-101 (lid-v1).
 
 The lid is the body's hexagon (240 across corners, R12 corners), 5 mm thick, printed top-face-down on the bed so the
 top comes out flat and smooth; everything under it points up while printing, so no supports.
 
 - Six posts under the corners sit on the body's corner columns and take an M3 screw each into the column pilots.
   They hold the lid 10 mm above the rim: that gap all round is the exhaust (the floor cable holes are the intake).
-- The arm is the open SO-101 follower (TheRobotStudio/SO-ARM100, STS3215 servos), its Base_SO101 bolted on with
-  4 x M4 x 30 countersunk screws into hex nuts trapped in bosses under the lid. The base's own holes are
-  countersunk for that (5 mm hole, 10 mm countersink). The arm reaches forward (+y, through camera face 1).
+- lid-v2: SO-ARM102 follower (roboninecom/SO-ARM102, Sept 2026: PET-CF frame, parallel gripper, 352 deg base, 483 mm
+  reach). Its 160 x 112.5 base has four 8.2 mm holes on an 80 x 80 square with a 10.2 mm counterbore from 10 mm up
+  (made for desk C-clamps; the holes take M6 socket heads). The pan axis sits on the lid centre.
+  4 x M6 x 25 socket head into M6 nuts trapped in bosses under the lid.
+- lid-v1: SO-101 follower (TheRobotStudio/SO-ARM100), Base_SO101 with 4 x M4 x 30 countersunk into M4 nuts (its
+  holes are 5 mm with a 10 mm countersink). The arm reaches forward (+y, through camera face 1).
 - Ribs from the posts to the bosses carry the arm's load into the columns; a slot behind the arm takes its
   cable (servo bus board power + USB) down to the AGX.
 
@@ -24,23 +27,35 @@ import trimesh
 import box
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-VERSION = "lid-v1"
+ARM = os.environ.get("ARM", "so102")
+VERSION = {"so102": "lid-v2", "so101": "lid-v1"}[ARM]
 OUT = os.path.join(HERE, VERSION)
 os.makedirs(OUT, exist_ok=True)
-SO101 = os.path.join(HERE, "..", "ref-dl", "SO-ARM100", "STL", "SO101", "Individual")   # not committed
+REF = os.path.join(HERE, "..", "ref-dl")       # downloaded arm STLs, not committed
 
 T = 5.0                         # plate (= 12 lines; strong enough to spread the arm's moment into the ribs)
 GAP = 10.0                      # lid underside above the rim: exhaust gap, and the posts' height
 POST = 9.0                      # post across; sits on the column + lip + wall corner
 RIB = (3.0, 7.0)                # width (~7 lines), height under the plate
 M3 = (3.4, 6.5, 3.5)            # clearance, counterbore on top, counterbore depth
-# SO-101 base holes (from Base_SO101.stl, its bottom at y = 0, x across, z front-to-back), placed here with the arm
-# reaching +y: the narrow pair (x +-27.8) on the reach side, the wide pair (x +-31.8) behind
-ARM_HOLES = [(sx * 27.8, 34.9) for sx in (-1, 1)] + [(sx * 31.8, -34.8) for sx in (-1, 1)]
-BASE_Z0 = 27.6                  # base z that lands on lid y = 0 (centres the 87 mm base plate)
-BOSS = 14.0
-M4 = (4.5, 7.27, 3.4)           # clearance, nut across flats (+0.27), nut pocket depth (nut 3.2)
-CABLE = (34.0, 14.0, 7.0, -60.0)  # slot x, y, corner radius, centre y (behind the arm base, base ends at y -43.5)
+if ARM == "so102":
+    # SO102.02.010 Base.stl: bottom at y = 0, x 0..160, z 0..112.5, pan axis (the 42 mm hole) at x 80, z 62.5
+    ARM_HOLES = [(sx * 40.0, sy * 40.0) for sy in (1, -1) for sx in (-1, 1)]
+    BASE_STL, ASSY_STL = os.path.join(REF, "so102", "base.stl"), None
+    BASE_TF = [[1, 0, 0, -80.0], [0, 0, -1, 62.5], [0, 1, 0, 0], [0, 0, 0, 1]]   # x - 80, -(z - 62.5), y
+    NUT = (6.5, 10.27, 5.2)     # M6: clearance, nut across flats (+0.27), pocket depth (nut 5.0)
+    BOSS = 18.0
+    CABLE_Y = -80.0             # the base covers y -50..62.5 (mirrored z)
+else:
+    # Base_SO101.stl: bottom at y = 0, x across, z front-to-back; the narrow pair (x +-27.8) on the reach side
+    ARM_HOLES = [(sx * 27.8, 34.9) for sx in (-1, 1)] + [(sx * 31.8, -34.8) for sx in (-1, 1)]
+    BASE_STL = os.path.join(REF, "SO-ARM100", "STL", "SO101", "Individual", "Base_SO101.stl")
+    ASSY_STL = os.path.join(REF, "SO-ARM100", "STL", "SO101", "Individual", "SO101 Assembly.stl")
+    BASE_TF = [[-1, 0, 0, 0], [0, 0, 1, -27.6], [0, 1, 0, 0], [0, 0, 0, 1]]      # -x, z - 27.6 (centres the plate), y
+    NUT = (4.5, 7.27, 3.4)      # M4
+    BOSS = 14.0
+    CABLE_Y = -60.0             # the base ends at y -43.5
+CABLE = (34.0, 14.0, CABLE_Y)  # slot length, width (round ends), centre y: behind the arm base
 NAME = ("킹크랩", 14.0, 0.6, 72.0)   # text, size, depth, centre y (in front of the arm)
 FONT = "/System/Library/Fonts/Supplemental/AppleGothic.ttf"
 
@@ -84,10 +99,10 @@ def lid():
     top = GAP + T
     p = p.cut(cq.Workplane("XY").pushPoints(cs).circle(M3[0] / 2).extrude(top + 1))
     p = p.cut(cq.Workplane("XY").workplane(offset=top - M3[2]).pushPoints(cs).circle(M3[1] / 2).extrude(M3[2] + 1))
-    p = p.cut(cq.Workplane("XY").pushPoints(hs).circle(M4[0] / 2).extrude(top + 1))
-    p = p.cut(cq.Workplane("XY").workplane(offset=under - 0.01).pushPoints(hs).polygon(6, M4[1] / math.cos(math.radians(30)))
-              .extrude(M4[2]))
-    w, l, r, y = CABLE
+    p = p.cut(cq.Workplane("XY").pushPoints(hs).circle(NUT[0] / 2).extrude(top + 1))
+    p = p.cut(cq.Workplane("XY").workplane(offset=under - 0.01).pushPoints(hs).polygon(6, NUT[1] / math.cos(math.radians(30)))
+              .extrude(NUT[2]))
+    w, l, y = CABLE
     p = p.cut(cq.Workplane("XY").center(0, y).slot2D(w, l).extrude(top + 1))      # round ends (r = l / 2)
     txt, size, depth, ty = NAME
     p = p.cut(cq.Workplane("XY").workplane(offset=top - depth).center(0, ty)
@@ -96,11 +111,11 @@ def lid():
 
 
 def place_base(m):
-    """Base_SO101 onto the lid top. Its frame: x across, y up (bottom y = 0), z front-to-back with the narrow hole
-    pair at z = 62.5 on the reach side. Lid frame: reach = +y, so (x, y, z) -> (-x, z - BASE_Z0, y + top)."""
+    """The arm's base STL (its bottom at y = 0) onto the lid top."""
     m = m.copy()
-    R = np.array([[-1, 0, 0, 0], [0, 0, 1, -BASE_Z0], [0, 1, 0, GAP + T], [0, 0, 0, 1]], float)
-    m.apply_transform(R)
+    tf = np.array(BASE_TF, float)
+    tf[2, 3] = GAP + T
+    m.apply_transform(tf)
     return m
 
 
@@ -128,35 +143,37 @@ if __name__ == "__main__":
             print(f"  post at {np.round(c, 1)} rests only {frac:.0%} on the rim")
             probs += 1
 
-    # the SO-101 base: its holes must line up with ours, and it must sit flat on the plate
+    # the arm's base: its holes must line up with ours, it must sit on the plate and stay inside the lid's outline
     parts = []
-    bp = os.path.join(SO101, "Base_SO101.stl")
-    if os.path.exists(bp):
-        base = place_base(trimesh.load(bp))
+    if os.path.exists(BASE_STL):
+        base = place_base(trimesh.load(BASE_STL))
         print("base on lid: x", base.bounds[:, 0].round(1), "y", base.bounds[:, 1].round(1), "z", base.bounds[:, 2].round(1))
         for h in ARM_HOLES:
-            o = np.array([[h[0] + 1.6 * math.cos(a), h[1] + 1.6 * math.sin(a), GAP + T + 40] for a in np.linspace(0, 6.2, 12)])
+            o = np.array([[h[0] + (NUT[0] / 2 - 0.6) * math.cos(a), h[1] + (NUT[0] / 2 - 0.6) * math.sin(a), GAP + T + 40] for a in np.linspace(0, 6.2, 12)])
             if base.ray.intersects_any(o, np.tile([0, 0, -1.0], (len(o), 1))).any():
-                print(f"  M4 at {h} is blocked by the base")
+                print(f"  bolt at {h} is blocked by the base")
                 probs += 1
             if lm.ray.intersects_any(o, np.tile([0, 0, -1.0], (len(o), 1))).any():
-                print(f"  M4 at {h} is blocked in the lid")
+                print(f"  bolt at {h} is blocked in the lid")
                 probs += 1
         if trimesh.boolean.intersection([base, lm], engine="manifold").volume > 0.01:
             print("  base overlaps the lid")
             probs += 1
-        w, l, r, y = CABLE
+        foot = base.vertices[base.vertices[:, 2] < GAP + T + 0.5][:, :2]
+        if any(np.abs(foot @ [math.cos(box.phi(i)), math.sin(box.phi(i))]).max() > box.APO - 3 for i in range(3)):
+            print("  the base hangs over the lid's edge")
+            probs += 1
+        w, l, y = CABLE
         if base.bounds[0, 1] < y + l / 2 + 2:
             print("  cable slot is under the base")
             probs += 1
         parts.append(("base", base))
-        ap = os.path.join(SO101, "SO101 Assembly.stl")
-        if os.path.exists(ap):
-            a = trimesh.load(ap)     # assembly frame: z up, base bottom z = 0, reaching -y; holes at y 45.2/-24.5
+        if ASSY_STL and os.path.exists(ASSY_STL):
+            a = trimesh.load(ASSY_STL)     # assembly frame: z up, base bottom z = 0, reaching -y; holes at y 45.2/-24.5
             a.apply_transform(np.array([[-1, 0, 0, 0], [0, -1, 0, 10.4], [0, 0, 1, GAP + T], [0, 0, 0, 1]], float))
             parts.append(("arm", a))
     else:
-        print("  (SO-101 STLs not found: git clone TheRobotStudio/SO-ARM100 into ../ref-dl to check the arm)")
+        print(f"  ({BASE_STL} not found: download the arm's base STL into ../ref-dl to check it)")
     print("clearance problems:", probs)
 
     # print orientation: top face down

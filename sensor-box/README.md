@@ -84,7 +84,14 @@ Note: the M2 holes (34.1 × 29.0, symmetric on the red holder) sit right beside 
 | Rail bar → robot rail | M5 + rail slider nut, rail spacing **HOLD** (closed 18 mm slots take rail spacings 206–242 mm) | 4 |
 | (Later) lid → corner columns | M3 self-tapping | 6 |
 
-## Lid v1 "킹크랩" + SO-101 arm ([lid.py](lid.py))
+## Lid "킹크랩" + robot arm ([lid.py](lid.py))
+
+Two versions from the same code (`ARM=so102` default, `ARM=so101`), same body interface:
+
+| Version | Arm | Arm screws | Print |
+|---|---|---|---|
+| **[lid-v2](lid-v2/)** | [SO-ARM102](https://github.com/roboninecom/SO-ARM102) (Sept 2026, successor of SO-101: PET-CF frame, parallel gripper, 352° base, 483 mm reach, STS3235/3250/3215, 12 V) | base's 8.2 mm holes on an 80 × 80 square (made for C-clamps) → 4 × M6 × 25 socket head + M6 nuts trapped under the lid; pan axis on the lid centre | 3 h 01 m / 134 g |
+| [lid-v1](lid-v1/) | SO-101 | 4 × M4 × 30 countersunk + M4 nuts | 2 h 59 m / 133 g |
 
 ![Lid](lid-v1/preview.png)
 
