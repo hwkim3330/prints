@@ -15,6 +15,7 @@ Files that live in other repos are named by repo and path; copy the `.gcode.3mf`
 | 8 | Camera test for #7: the wall's camera mount as one piece (check the clear housing in the opening, the red holder in the pocket, M2 x 6 from inside biting into the wall, the ribbon flat in its channel) | PLA | 22 m / 8 g | `sensor-box/v10/cam_test.gcode.3mf` | skipped: the body came out fine |
 | 9 | Full car body (decide the layer height from #2/#3 first) | PLA white | ~31 h (body) / ~63 h (all) | private testbed repo, `print/PLATES.md` | after #2-#4 |
 | 10 | Sensor box lid "킹크랩" v2: carries an SO-ARM102 arm (4 x M6 x 25 + nuts; v1 = SO-101), 6 x M3 into the body's corner columns, 10 mm exhaust gap | PLA (PETG if it gets warm) | 3 h 01 m / 134 g | `sensor-box/lid-v2/lid.gcode.3mf` (on SD) | **next** |
+| 11 | LAN9692 rack plates printed instead of acrylic, one stack: A-base, B-ecu, C-can x2, D-top (same holes as the DXF, rim under the edge, 40 % infill) | PLA | ~2 h 35 m / 137 g each, 12 h 50 m / 690 g per stack | `lan9692-rack/<plate>.gcode.3mf` (source: lan9692-ring-rack `print_plates.py`) | to do |
 
 Notes
 - PETG for anything near heat (the sensor box holds a ~60 W computer) or outdoors; PLA only for desk parts and fit tests.
