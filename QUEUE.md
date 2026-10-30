@@ -16,6 +16,7 @@ Files that live in other repos are named by repo and path; copy the `.gcode.3mf`
 | 9 | Full car body (decide the layer height from #2/#3 first) | PLA white | ~31 h (body) / ~63 h (all) | private testbed repo, `print/PLATES.md` | after #2-#4 |
 | 10 | Sensor box lid "킹크랩" v2: carries an SO-ARM102 arm (4 x M6 x 25 + nuts; v1 = SO-101), 6 x M3 into the body's corner columns, 10 mm exhaust gap | PLA (PETG if it gets warm) | 3 h 01 m / 134 g | `sensor-box/lid-v2/lid.gcode.3mf` (on SD) | **next** |
 | 11 | LAN9692 rack plates printed instead of acrylic, one stack: A-base, B-ecu, C-can x2, D-top (same holes as the DXF, rim under the edge, 40 % infill) | PLA | ~2 h 35 m / 137 g each, 12 h 50 m / 690 g per stack | `lan9692-rack/<plate>.gcode.3mf` (source: lan9692-ring-rack `print_plates.py`) | to do |
+| 12 | LAN9692 EVB closed box, vented, 40 mm lid fan over U1 (alternative to the rack in #11 for one board): plate 1 tray, plate 2 lid + front + rear panel (panels flat). Floor and panels flat on the bed, no brim, no supports. Screws: 8 x M3x8 PCB, 4 x M3x10 lid, 4 x M3x16 + nuts fan, 4 rubber feet | PLA | tray 3 h 11 m / 86 g; lid + panels 2 h 55 m / 92 g (6 h 06 m / 178 g) | `lan9692-box/lan9692_box_tray.gcode.3mf`, `lan9692-box/lan9692_box_lid_panels.gcode.3mf` (source: stl-model `lan9692-evb-case/lan9692_box.py`) | to do |
 
 Notes
 - PETG for anything near heat (the sensor box holds a ~60 W computer) or outdoors; PLA only for desk parts and fit tests.
