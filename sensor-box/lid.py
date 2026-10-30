@@ -71,7 +71,10 @@ elif ARM == "lidar":
     NUT = (5.5, 8.27, 4.2)      # M5: clearance, nut across flats (+0.27), pocket depth (nut 4.0)
     BOSS = 14.0
     CABLE_Y = -82.0             # outside the 140 mm plate (y -70)
-    LIDAR = dict(d=85.0, h=73.5, ring=86.0, ring_depth=1.0, slots=(18.0, 40.0, 3.4), n=8, vent=30.0)
+    LIDAR = dict(d=85.0, h=73.5, ring=86.0, ring_depth=1.0, slots=(21.0, 40.0, 3.4), n=8, vent=37.0)
+    # USB fan under the lid blowing up through the vent onto the OS1's base: Adafruit 6101 (devicemart ada-6101),
+    # 40 x 40 x 10.6, M3 holes 32 x 32, 5 V 0.2 A, USB-A lead to the AGX. The ribs stop round it so it sits flat.
+    FAN = dict(size=40.0, t=10.6, pitch=32.0, clear=42.0)
     # a separate collar the OS1 drops into (no screws into the sensor needed for a trial): bore Ø85.6, 15 tall,
     # open at the back for the connector on the base's side; 4 x M3 from under the lid into its flange
     COLLAR = dict(bore=85.6, wall=3.2, h=15.0, flange=(104.0, 3.0), screws_r=48.0, notch=32.0)
@@ -140,6 +143,10 @@ def lid():
         L = LIDAR
         p = p.cut(cq.Workplane("XY").workplane(offset=top - L["ring_depth"]).circle(L["ring"] / 2).extrude(2))
         p = p.cut(cq.Workplane("XY").circle(L["vent"] / 2).extrude(top + 1))
+        p = p.cut(cq.Workplane("XY").rect(FAN["clear"], FAN["clear"]).extrude(GAP))        # ribs off the fan's seat
+        h = FAN["pitch"] / 2
+        p = p.cut(cq.Workplane("XY").pushPoints([(sx * h, sy * h) for sx in (-1, 1) for sy in (-1, 1)])
+                  .circle(M3[0] / 2).extrude(top + 1))
         r0, r1, w = L["slots"]
         cpts = [(COLLAR["screws_r"] * math.cos(math.radians(a)), COLLAR["screws_r"] * math.sin(math.radians(a)))
                 for a in (45, 135, 225, 315)]
@@ -256,6 +263,16 @@ if __name__ == "__main__":
         print(f"collar {cm.extents.round(1)} watertight={cm.is_watertight}  overlaps the OS1 by {bad:.2f} mm3")
         probs += bad > 0.01
         cm.export(os.path.join(OUT, "collar.stl"))
+        fan = trimesh.creation.box((FAN["size"],) * 2 + (FAN["t"],))
+        fan.apply_translation((0, 0, GAP - FAN["t"] / 2 - 0.01))
+        bad = trimesh.boolean.intersection([fan, lm], engine="manifold").volume
+        print(f"fan under the lid overlaps it by {bad:.2f} mm3; its bottom is {GAP - FAN['t'] - 0:.1f} mm from the rim")
+        probs += bad > 0.01
+        fb = fan.copy(); fb.apply_translation((0, 0, box.H))
+        bad = trimesh.boolean.intersection([fb, bm], engine="manifold").volume
+        print(f"fan vs body: {bad:.2f} mm3")
+        probs += bad > 0.01
+        parts.append(("base", fan))
         parts.append(("lid", ct))
 
     # print orientation: top face down

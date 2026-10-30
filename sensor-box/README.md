@@ -109,8 +109,12 @@ slots (r 18–40, off the axes so none lands on a rib) that take whatever bolt p
 under its middle, the cable slot at y −82. Four M5 nut traps at (±60, ±60) are the REV9 OS1 plate pattern (P05,
 140 × 140 × 5 AL6061): that aluminium plate bolts on later as the heat sink. The OS1 manual wants its base on a
 thermally conductive surface (base ≤ 25 °C over ambient, shot limiting from 52 °C, shut-off at 60 °C), and PLA softens
-around 55–60 °C, so PLA under the sensor is for short trials. **3 h 13 m / 132 g.**
+around 55–60 °C, so PLA under the sensor is for short trials. **3 h 12 m / 131 g.**
 
 The OS1 can simply drop into a printed **collar** instead of being screwed down: bore Ø85.6, 15 mm tall, open 32 mm at
 the back for the connector on the base's side, held by 4 × M3 × 8 from under the lid (holes at r 48) into blind pilots
 in its flange. `lid-lidar/collar.gcode.3mf`, **35 m / 17 g**.
+
+A **40 mm USB fan** (Adafruit 6101, devicemart ada-6101: 40 × 40 × 10.6, M3 holes 32 × 32, 5 V 0.2 A, USB-A lead)
+hangs under the lid centre blowing up through the Ø37 vent onto the OS1's base; the ribs stop round a 42 mm square so
+it sits flat, 4 × M3 × 20 + nuts. It reaches 0.6 mm below the rim, clear of the body; plug it into the AGX.
