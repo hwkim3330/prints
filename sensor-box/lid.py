@@ -75,9 +75,10 @@ elif ARM == "lidar":
     # USB fan under the lid blowing up through the vent onto the OS1's base: Adafruit 6101 (devicemart ada-6101),
     # 40 x 40 x 10.6, M3 holes 32 x 32, 5 V 0.2 A, USB-A lead to the AGX. The ribs stop round it so it sits flat.
     FAN = dict(size=40.0, t=10.6, pitch=32.0, clear=42.0)
-    # a separate collar the OS1 drops into (no screws into the sensor needed for a trial): bore Ø85.6, 15 tall,
-    # open at the back for the connector on the base's side; 4 x M3 from under the lid into its flange
-    COLLAR = dict(bore=85.6, wall=3.2, h=15.0, flange=(104.0, 3.0), screws_r=48.0, notch=32.0)
+    # the OS1-64's own base has four M8 through holes with 15 mm counterbores, one at each corner (user's caliper:
+    # 8.4 / 15). Their spacing is not measured yet, so four diagonal M8 slots (r 35..72 = a square pattern 50..102 mm
+    # across) take them; M8 x 35 from the top, washer + nut under the lid
+    M8_SLOTS = (35.0, 72.0, 8.6)
 else:
     # Base_SO101.stl: bottom at y = 0, x across, z front-to-back; the narrow pair (x +-27.8) on the reach side
     ARM_HOLES = [(sx * 27.8, 34.9) for sx in (-1, 1)] + [(sx * 31.8, -34.8) for sx in (-1, 1)]
@@ -148,9 +149,10 @@ def lid():
         p = p.cut(cq.Workplane("XY").pushPoints([(sx * h, sy * h) for sx in (-1, 1) for sy in (-1, 1)])
                   .circle(M3[0] / 2).extrude(top + 1))
         r0, r1, w = L["slots"]
-        cpts = [(COLLAR["screws_r"] * math.cos(math.radians(a)), COLLAR["screws_r"] * math.sin(math.radians(a)))
-                for a in (45, 135, 225, 315)]
-        p = p.cut(cq.Workplane("XY").pushPoints(cpts).circle(M3[0] / 2).extrude(top + 1))
+        r0, r1, w = M8_SLOTS
+        for a in (45, 135, 225, 315):
+            c = ((r0 + r1) / 2 * math.cos(math.radians(a)), (r0 + r1) / 2 * math.sin(math.radians(a)))
+            p = p.cut(cq.Workplane("XY").center(*c).slot2D(r1 - r0 + w, w, a).extrude(top + 1))
         for k in range(L["n"]):          # off the axes, so no slot lands on the rib along x
             a = math.radians(22.5 + 360 / L["n"] * k)
             c = ((r0 + r1) / 2 * math.cos(a), (r0 + r1) / 2 * math.sin(a))
@@ -159,19 +161,6 @@ def lid():
     p = p.cut(cq.Workplane("XY").workplane(offset=top - depth).center(0, ty)
               .text(txt, size, depth + 1, fontPath=FONT, halign="center", valign="center"))
     return p
-
-
-def collar():
-    """OS1 collar, in use orientation (bottom on the lid top at z = 0); prints flange-down as it is."""
-    C = COLLAR
-    ro = C["bore"] / 2 + C["wall"]
-    c = (cq.Workplane("XY").circle(C["flange"][0] / 2).extrude(C["flange"][1])
-         .union(cq.Workplane("XY").circle(ro).extrude(C["h"])))
-    c = c.cut(cq.Workplane("XY").circle(C["bore"] / 2).extrude(C["h"] + 1))
-    c = c.cut(cq.Workplane("XY").center(0, -ro).rect(C["notch"], 2 * C["wall"] + 30).extrude(C["h"] + 1))  # connector, back
-    pts = [(C["screws_r"] * math.cos(math.radians(a)), C["screws_r"] * math.sin(math.radians(a))) for a in (45, 135, 225, 315)]
-    c = c.cut(cq.Workplane("XY").pushPoints(pts).circle(1.3).extrude(C["flange"][1] - 0.6))   # M3 self-tap pilots, blind
-    return c.edges(">Z").chamfer(0.8)
 
 
 def place_base(m):
@@ -257,12 +246,6 @@ if __name__ == "__main__":
     print("clearance problems:", probs)
 
     if ARM == "lidar":
-        cm = box.mesh(collar())
-        ct = cm.copy(); ct.apply_translation((0, 0, GAP + T))
-        bad = trimesh.boolean.intersection([ct, base], engine="manifold").volume
-        print(f"collar {cm.extents.round(1)} watertight={cm.is_watertight}  overlaps the OS1 by {bad:.2f} mm3")
-        probs += bad > 0.01
-        cm.export(os.path.join(OUT, "collar.stl"))
         fan = trimesh.creation.box((FAN["size"],) * 2 + (FAN["t"],))
         fan.apply_translation((0, 0, GAP - FAN["t"] / 2 - 0.01))
         bad = trimesh.boolean.intersection([fan, lm], engine="manifold").volume
@@ -273,7 +256,6 @@ if __name__ == "__main__":
         print(f"fan vs body: {bad:.2f} mm3")
         probs += bad > 0.01
         parts.append(("base", fan))
-        parts.append(("lid", ct))
 
     # print orientation: top face down
     pm = lm.copy()

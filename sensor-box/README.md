@@ -102,19 +102,17 @@ Three versions from the same code (`ARM=so102` default, `ARM=so101`, `ARM=crab`)
 - The arm reaches forward (+y, camera face 1). Ribs run from the posts to the bosses. A 34 x 14 slot behind the arm takes its cable down to the AGX. "킹크랩" is set 0.6 mm into the top in front of the arm.
 - `lid.py` checks the lid against the body (posts resting on the rim, no overlap) and the SO-101 base from its STL (holes clear, flat contact). Put the SO-ARM100 repo in `../ref-dl/` to run that part.
 
-### Lid "lidar" (temporary, `ARM=lidar` → [lid-lidar](lid-lidar/))
+### Lid "lidar" (`ARM=lidar` → [lid-lidar](lid-lidar/))
 
-Ouster OS1 (Ø85 × 73.5) on the lid centre until the real mount is settled: a Ø86 × 1 mm locating ring, eight radial M3
-slots (r 18–40, off the axes so none lands on a rib) that take whatever bolt pattern the OS1's base has, a Ø30 vent
-under its middle, the cable slot at y −82. Four M5 nut traps at (±60, ±60) are the REV9 OS1 plate pattern (P05,
-140 × 140 × 5 AL6061): that aluminium plate bolts on later as the heat sink. The OS1 manual wants its base on a
-thermally conductive surface (base ≤ 25 °C over ambient, shot limiting from 52 °C, shut-off at 60 °C), and PLA softens
-around 55–60 °C, so PLA under the sensor is for short trials. **3 h 12 m / 131 g.**
-
-The OS1 can simply drop into a printed **collar** instead of being screwed down: bore Ø85.6, 15 mm tall, open 32 mm at
-the back for the connector on the base's side, held by 4 × M3 × 8 from under the lid (holes at r 48) into blind pilots
-in its flange. `lid-lidar/collar.gcode.3mf`, **35 m / 17 g**.
-
-A **40 mm USB fan** (Adafruit 6101, devicemart ada-6101: 40 × 40 × 10.6, M3 holes 32 × 32, 5 V 0.2 A, USB-A lead)
-hangs under the lid centre blowing up through the Ø37 vent onto the OS1's base; the ribs stop round a 42 mm square so
-it sits flat, 4 × M3 × 20 + nuts. It reaches 0.6 mm below the rim, clear of the body; plug it into the AGX.
+Ouster **OS1-64** (serial 122030000171) on the lid centre. **3 h 13 m / 122 g.**
+- **M8 (main fixing):** the OS1's base has an M8 through hole with a 15 mm counterbore at each corner (caliper:
+  8.4 / 15). Their spacing isn't measured, so four diagonal M8 slots (r 35–72: square patterns 50–102 mm across) take
+  them: M8 × 35 from the top, washer + nut under the lid.
+- Eight radial M3 slots (r 18–40) for the 4 × M3 bottom holes if those are used instead; a Ø86 × 1 mm locating recess.
+- **Fan:** 40 mm USB fan (Adafruit 6101: 40 × 40 × 10.6, M3 at 32 × 32, 5 V 0.2 A) under the centre, blowing up
+  through the Ø37 vent onto the OS1's base; the ribs stop round a 42 mm square; 4 × M3 × 20 + nuts; plug into the AGX.
+- **Cable:** the slot at y −82 behind the sensor, down into the box.
+- Four M5 nut traps at (±60, ±60) = the REV9 aluminium OS1 plate (P05, 140 × 140 × 5 AL6061) for later. The OS1 wants
+  its base on a conductive surface (≤ 25 °C over ambient, shot limiting from 52 °C, off at 60 °C); PLA softens at
+  55–60 °C, so with the fan this is for trials, the aluminium plate for long runs.
+- (The slip-on collar is gone: its screws sat in the M8 slots, and the base is not a plain Ø85 disc.)
