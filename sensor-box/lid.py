@@ -32,7 +32,7 @@ import box
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 ARM = os.environ.get("ARM", "so102")
-VERSION = {"so102": "lid-v2", "so101": "lid-v1", "crab": "lid-v3"}[ARM]
+VERSION = {"so102": "lid-v2", "so101": "lid-v1", "crab": "lid-v3", "lidar": "lid-lidar"}[ARM]
 OUT = os.path.join(HERE, VERSION)
 os.makedirs(OUT, exist_ok=True)
 REF = os.path.join(HERE, "..", "ref-dl")       # downloaded arm STLs, not committed
@@ -60,6 +60,18 @@ elif ARM == "crab":
     BOSS = 14.0
     CABLE_Y = -62.0             # the flange ends at y -50
     J1_LEAD = (14.0, 26.0, -13.0)   # x size, y size, centre y: under the J1 case, inside the turret
+elif ARM == "lidar":
+    # Temporary lidar lid (Ouster OS1, Ø85 x 73.5) until the real mount is settled. The OS1's own M3 pattern is only in
+    # Ouster's drawing, so eight radial M3 slots (r 18..40) take any bolt circle or square inside the base. The four
+    # M5 bosses at (+-60, +-60) are the REV9 OS1 plate pattern (P05, 140 x 140 x 5 AL6061): that aluminium plate bolts
+    # on later as the heat sink the OS1 manual asks for -- PLA under the sensor is for short trials only.
+    ARM_HOLES = [(sx * 60.0, sy * 60.0) for sy in (1, -1) for sx in (-1, 1)]
+    BASE_STL, ASSY_STL = "", None
+    BASE_TF = np.eye(4).tolist()
+    NUT = (5.5, 8.27, 4.2)      # M5: clearance, nut across flats (+0.27), pocket depth (nut 4.0)
+    BOSS = 14.0
+    CABLE_Y = -82.0             # outside the 140 mm plate (y -70)
+    LIDAR = dict(d=85.0, h=73.5, ring=86.0, ring_depth=1.0, slots=(18.0, 40.0, 3.4), n=8, vent=30.0)
 else:
     # Base_SO101.stl: bottom at y = 0, x across, z front-to-back; the narrow pair (x +-27.8) on the reach side
     ARM_HOLES = [(sx * 27.8, 34.9) for sx in (-1, 1)] + [(sx * 31.8, -34.8) for sx in (-1, 1)]
@@ -70,7 +82,7 @@ else:
     BOSS = 14.0
     CABLE_Y = -60.0             # the base ends at y -43.5
 CABLE = (34.0, 14.0, CABLE_Y)  # slot length, width (round ends), centre y: behind the arm base
-NAME = ("킹크랩", 14.0, 0.6, 72.0)   # text, size, depth, centre y (in front of the arm)
+NAME = ("킹크랩", 14.0, 0.6, 86.0 if ARM == "lidar" else 72.0)   # text, size, depth, centre y (in front of the arm / plate)
 FONT = "/System/Library/Fonts/Supplemental/AppleGothic.ttf"
 
 
@@ -121,6 +133,15 @@ def lid():
     if ARM == "crab":
         w, l, y = J1_LEAD
         p = p.cut(cq.Workplane("XY").center(0, y).rect(w, l).extrude(top + 1).edges("|Z").fillet(3))
+    if ARM == "lidar":
+        L = LIDAR
+        p = p.cut(cq.Workplane("XY").workplane(offset=top - L["ring_depth"]).circle(L["ring"] / 2).extrude(2))
+        p = p.cut(cq.Workplane("XY").circle(L["vent"] / 2).extrude(top + 1))
+        r0, r1, w = L["slots"]
+        for k in range(L["n"]):          # off the axes, so no slot lands on the rib along x
+            a = math.radians(22.5 + 360 / L["n"] * k)
+            c = ((r0 + r1) / 2 * math.cos(a), (r0 + r1) / 2 * math.sin(a))
+            p = p.cut(cq.Workplane("XY").center(*c).slot2D(r1 - r0 + w, w, math.degrees(a)).extrude(top + 1))
     txt, size, depth, ty = NAME
     p = p.cut(cq.Workplane("XY").workplane(offset=top - depth).center(0, ty)
               .text(txt, size, depth + 1, fontPath=FONT, halign="center", valign="center"))
@@ -165,8 +186,13 @@ if __name__ == "__main__":
     if ARM == "crab":
         sys.path.insert(0, os.path.join(HERE, "..", "crab-arm"))
         import crab
-    if ARM == "crab" or os.path.exists(BASE_STL):
-        base = place_base(box.mesh(crab.turret()) if ARM == "crab" else trimesh.load(BASE_STL))
+    if ARM in ("crab", "lidar") or os.path.exists(BASE_STL):
+        if ARM == "lidar":                  # the OS1 as a plain cylinder resting on the floor of its locating ring
+            base = trimesh.creation.cylinder(radius=LIDAR["d"] / 2, height=LIDAR["h"], sections=96)
+            base.apply_translation((0, 0, LIDAR["h"] / 2 - LIDAR["ring_depth"] + 0.01))
+            base = place_base(base)
+        else:
+            base = place_base(box.mesh(crab.turret()) if ARM == "crab" else trimesh.load(BASE_STL))
         print("base on lid: x", base.bounds[:, 0].round(1), "y", base.bounds[:, 1].round(1), "z", base.bounds[:, 2].round(1))
         for h in ARM_HOLES:
             o = np.array([[h[0] + (NUT[0] / 2 - 0.6) * math.cos(a), h[1] + (NUT[0] / 2 - 0.6) * math.sin(a), GAP + T + 40] for a in np.linspace(0, 6.2, 12)])

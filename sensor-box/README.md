@@ -101,3 +101,12 @@ Three versions from the same code (`ARM=so102` default, `ARM=so101`, `ARM=crab`)
 - The arm is the open-source SO-101 follower ([TheRobotStudio/SO-ARM100](https://github.com/TheRobotStudio/SO-ARM100), 6 x Feetech STS3215). Its `Base_SO101` has four countersunk 5 mm holes (x +-27.8 / +-31.8, 69.7 apart); the lid has M4 holes there with hex nut traps in bosses underneath. Screws: 4 x M4 x 30 countersunk + M4 nuts.
 - The arm reaches forward (+y, camera face 1). Ribs run from the posts to the bosses. A 34 x 14 slot behind the arm takes its cable down to the AGX. "킹크랩" is set 0.6 mm into the top in front of the arm.
 - `lid.py` checks the lid against the body (posts resting on the rim, no overlap) and the SO-101 base from its STL (holes clear, flat contact). Put the SO-ARM100 repo in `../ref-dl/` to run that part.
+
+### Lid "lidar" (temporary, `ARM=lidar` → [lid-lidar](lid-lidar/))
+
+Ouster OS1 (Ø85 × 73.5) on the lid centre until the real mount is settled: a Ø86 × 1 mm locating ring, eight radial M3
+slots (r 18–40, off the axes so none lands on a rib) that take whatever bolt pattern the OS1's base has, a Ø30 vent
+under its middle, the cable slot at y −82. Four M5 nut traps at (±60, ±60) are the REV9 OS1 plate pattern (P05,
+140 × 140 × 5 AL6061): that aluminium plate bolts on later as the heat sink. The OS1 manual wants its base on a
+thermally conductive surface (base ≤ 25 °C over ambient, shot limiting from 52 °C, shut-off at 60 °C), and PLA softens
+around 55–60 °C, so PLA under the sensor is for short trials. **3 h 11 m / 132 g.**
