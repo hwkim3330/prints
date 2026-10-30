@@ -2,6 +2,8 @@
 
   python3 flatten.py PROFILES_DIR/BBL OUT_DIR
 Writes machine.json, process.json, filament.json for the A1 0.4 / 0.20mm Standard / Bambu PLA Basic set.
+  python3 flatten.py PROFILES_DIR/BBL OUT_DIR "Generic PETG @BBL A1" filament_petg
+Writes only that filament, as OUT_DIR/filament_petg.json (pick it with FIL=filament_petg in slice.sh).
 """
 import json, os, sys
 
@@ -35,9 +37,11 @@ def resolve(kind, name):
 
 
 picks = {"machine": "Bambu Lab A1 0.4 nozzle", "process": "0.20mm Standard @BBL A1", "filament": "Bambu PLA Basic @BBL A1"}
+if len(sys.argv) > 4:
+    picks = {sys.argv[4]: sys.argv[3]}
 os.makedirs(out, exist_ok=True)
 for kind, name in picks.items():
-    d = resolve(kind, name)
+    d = resolve("filament" if kind.startswith("filament") else kind, name)
     d["from"] = "system"
     json.dump(d, open(os.path.join(out, kind + ".json"), "w"), indent=1)
     print(kind, name, len(d), "keys")
