@@ -86,12 +86,13 @@ Note: the M2 holes (34.1 × 29.0, symmetric on the red holder) sit right beside 
 
 ## Lid "킹크랩" + robot arm ([lid.py](lid.py))
 
-Two versions from the same code (`ARM=so102` default, `ARM=so101`), same body interface:
+Three versions from the same code (`ARM=so102` default, `ARM=so101`, `ARM=crab`), same body interface:
 
 | Version | Arm | Arm screws | Print |
 |---|---|---|---|
 | **[lid-v2](lid-v2/)** | [SO-ARM102](https://github.com/roboninecom/SO-ARM102) (Sept 2026, successor of SO-101: PET-CF frame, parallel gripper, 352° base, 483 mm reach, STS3235/3250/3215, 12 V) | base's 8.2 mm holes on an 80 × 80 square (made for C-clamps) → 4 × M6 × 25 socket head + M6 nuts trapped under the lid; pan axis on the lid centre | 3 h 01 m / 134 g |
 | [lid-v1](lid-v1/) | SO-101 | 4 × M4 × 30 countersunk + M4 nuts | 2 h 59 m / 133 g |
+| [lid-v3](lid-v3/) | our own [King Crab arm](../crab-arm/) (3 × MG996R + 2 × MG90S, crab pincer) | turret's 100 × 100 flange → 4 × M4 × 20 + M4 nuts trapped under the lid at (±40, ±40); a 14 × 26 hole under the turret for the J1 servo lead | 3 h 00 m / 133 g |
 
 ![Lid](lid-v1/preview.png)
 

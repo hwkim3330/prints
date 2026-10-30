@@ -1,4 +1,5 @@
-"""Lid for the sensor box ("킹크랩"), carrying a robot arm: SO-ARM102 (lid-v2) or SO-101 (lid-v1).
+"""Lid for the sensor box ("킹크랩"), carrying a robot arm: SO-ARM102 (lid-v2), SO-101 (lid-v1) or our own King Crab
+arm (lid-v3, ARM=crab, ../crab-arm/).
 
 The lid is the body's hexagon (240 across corners, R12 corners), 5 mm thick, printed top-face-down on the bed so the
 top comes out flat and smooth; everything under it points up while printing, so no supports.
@@ -11,6 +12,8 @@ top comes out flat and smooth; everything under it points up while printing, so 
   4 x M6 x 25 socket head into M6 nuts trapped in bosses under the lid.
 - lid-v1: SO-101 follower (TheRobotStudio/SO-ARM100), Base_SO101 with 4 x M4 x 30 countersunk into M4 nuts (its
   holes are 5 mm with a 10 mm countersink). The arm reaches forward (+y, through camera face 1).
+- lid-v3: King Crab arm (../crab-arm/crab.py, 3 x MG996R + 2 x MG90S). Its turret's 100 x 100 flange takes
+  4 x M4 x 20 into M4 nuts trapped under the lid at (+-40, +-40); a hole under the turret lets the J1 lead down.
 - Ribs from the posts to the bosses carry the arm's load into the columns; a slot behind the arm takes its
   cable (servo bus board power + USB) down to the AGX.
 
@@ -19,6 +22,7 @@ Run:  uv run --with cadquery --with trimesh --with numpy --with scipy --with net
 """
 import math
 import os
+import sys
 
 import cadquery as cq
 import numpy as np
@@ -28,7 +32,7 @@ import box
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 ARM = os.environ.get("ARM", "so102")
-VERSION = {"so102": "lid-v2", "so101": "lid-v1"}[ARM]
+VERSION = {"so102": "lid-v2", "so101": "lid-v1", "crab": "lid-v3"}[ARM]
 OUT = os.path.join(HERE, VERSION)
 os.makedirs(OUT, exist_ok=True)
 REF = os.path.join(HERE, "..", "ref-dl")       # downloaded arm STLs, not committed
@@ -46,6 +50,16 @@ if ARM == "so102":
     NUT = (6.5, 10.27, 5.2)     # M6: clearance, nut across flats (+0.27), pocket depth (nut 5.0)
     BOSS = 18.0
     CABLE_Y = -80.0             # the base covers y -50..62.5 (mirrored z)
+elif ARM == "crab":
+    # King Crab arm (../crab-arm/crab.py): its turret's 100 x 100 flange, M4 at (+-40, +-40), yaw axis on the lid centre.
+    # The J1 servo stands in the turret with its lead going straight down through a hole under it.
+    ARM_HOLES = [(sx * 40.0, sy * 40.0) for sy in (1, -1) for sx in (-1, 1)]
+    BASE_STL, ASSY_STL = "crab", None
+    BASE_TF = np.eye(4).tolist()                # the turret is built in use orientation, bottom at z = 0
+    NUT = (4.5, 7.27, 3.4)      # M4
+    BOSS = 14.0
+    CABLE_Y = -62.0             # the flange ends at y -50
+    J1_LEAD = (14.0, 26.0, -13.0)   # x size, y size, centre y: under the J1 case, inside the turret
 else:
     # Base_SO101.stl: bottom at y = 0, x across, z front-to-back; the narrow pair (x +-27.8) on the reach side
     ARM_HOLES = [(sx * 27.8, 34.9) for sx in (-1, 1)] + [(sx * 31.8, -34.8) for sx in (-1, 1)]
@@ -104,6 +118,9 @@ def lid():
               .extrude(NUT[2]))
     w, l, y = CABLE
     p = p.cut(cq.Workplane("XY").center(0, y).slot2D(w, l).extrude(top + 1))      # round ends (r = l / 2)
+    if ARM == "crab":
+        w, l, y = J1_LEAD
+        p = p.cut(cq.Workplane("XY").center(0, y).rect(w, l).extrude(top + 1).edges("|Z").fillet(3))
     txt, size, depth, ty = NAME
     p = p.cut(cq.Workplane("XY").workplane(offset=top - depth).center(0, ty)
               .text(txt, size, depth + 1, fontPath=FONT, halign="center", valign="center"))
@@ -145,8 +162,11 @@ if __name__ == "__main__":
 
     # the arm's base: its holes must line up with ours, it must sit on the plate and stay inside the lid's outline
     parts = []
-    if os.path.exists(BASE_STL):
-        base = place_base(trimesh.load(BASE_STL))
+    if ARM == "crab":
+        sys.path.insert(0, os.path.join(HERE, "..", "crab-arm"))
+        import crab
+    if ARM == "crab" or os.path.exists(BASE_STL):
+        base = place_base(box.mesh(crab.turret()) if ARM == "crab" else trimesh.load(BASE_STL))
         print("base on lid: x", base.bounds[:, 0].round(1), "y", base.bounds[:, 1].round(1), "z", base.bounds[:, 2].round(1))
         for h in ARM_HOLES:
             o = np.array([[h[0] + (NUT[0] / 2 - 0.6) * math.cos(a), h[1] + (NUT[0] / 2 - 0.6) * math.sin(a), GAP + T + 40] for a in np.linspace(0, 6.2, 12)])
@@ -172,6 +192,14 @@ if __name__ == "__main__":
             a = trimesh.load(ASSY_STL)     # assembly frame: z up, base bottom z = 0, reaching -y; holes at y 45.2/-24.5
             a.apply_transform(np.array([[-1, 0, 0, 0], [0, -1, 0, 10.4], [0, 0, 1, GAP + T], [0, 0, 0, 1]], float))
             parts.append(("arm", a))
+        if ARM == "crab":                   # the arm at its home pose, for the preview
+            ch = crab.chain(crab.POSES["home (upright, forearm forward)"])
+            for n, (wp, fr) in crab.build().items():
+                if fr != "W":
+                    a = box.mesh(wp)
+                    a.apply_transform(ch[fr])
+                    a.apply_translation((0, 0, GAP + T))
+                    parts.append(("arm", a))
     else:
         print(f"  ({BASE_STL} not found: download the arm's base STL into ../ref-dl to check it)")
     print("clearance problems:", probs)
