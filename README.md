@@ -11,7 +11,7 @@ Model: `uv run --with cadquery python ac164162/tray.py`
 Slice for the A1 (Bambu Studio in an x86 Linux container): `bambu-cli/slice.sh ac164162/out/tray.gcode.3mf ac164162/out/tray.stl`
 Print: copy the `.gcode.3mf` into the SD card's `model/` folder and pick it on the printer.
 
-What to print next: [QUEUE.md](QUEUE.md).
+What to print next: [QUEUE.md](QUEUE.md). Printability check of every part: [PRINT_AUDIT.md](PRINT_AUDIT.md).
 
 First print (8 mm standoffs) sat too high; lowered to 3.5 mm, not re-fitted yet.
 
