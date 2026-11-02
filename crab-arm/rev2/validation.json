@@ -1,0 +1,101 @@
+{
+  "claw.stl": {
+    "solid_cm3_old": 135.071,
+    "solid_cm3_new": 104.174,
+    "volume_reduction_percent": 22.87,
+    "shells": 1,
+    "bed_contact_mm2": 3337.7,
+    "downward_area_mm2": 29.5,
+    "old_downward_area_mm2": 29.5
+  },
+  "coupon.stl": {
+    "solid_cm3_old": 8.332,
+    "solid_cm3_new": 8.332,
+    "volume_reduction_percent": 0.0,
+    "shells": 2,
+    "bed_contact_mm2": 3042.6,
+    "downward_area_mm2": 0.0,
+    "old_downward_area_mm2": 0.0
+  },
+  "dactyl.stl": {
+    "solid_cm3_old": 10.435,
+    "solid_cm3_new": 10.435,
+    "volume_reduction_percent": 0.0,
+    "shells": 1,
+    "bed_contact_mm2": 1508.1,
+    "downward_area_mm2": 0.0,
+    "old_downward_area_mm2": 0.0
+  },
+  "fore_f.stl": {
+    "solid_cm3_old": 15.118,
+    "solid_cm3_new": 15.118,
+    "volume_reduction_percent": 0.0,
+    "shells": 1,
+    "bed_contact_mm2": 2619.5,
+    "downward_area_mm2": 0.0,
+    "old_downward_area_mm2": 0.0
+  },
+  "fore_fp.stl": {
+    "solid_cm3_old": 17.773,
+    "solid_cm3_new": 15.104,
+    "volume_reduction_percent": 15.02,
+    "shells": 1,
+    "bed_contact_mm2": 2517.3,
+    "downward_area_mm2": 0.0,
+    "old_downward_area_mm2": 0.0
+  },
+  "spacer_fore.stl": {
+    "solid_cm3_old": 3.379,
+    "solid_cm3_new": 3.379,
+    "volume_reduction_percent": 0.0,
+    "shells": 1,
+    "bed_contact_mm2": 240.8,
+    "downward_area_mm2": 186.8,
+    "old_downward_area_mm2": 186.8
+  },
+  "spacer_upper.stl": {
+    "solid_cm3_old": 5.733,
+    "solid_cm3_new": 5.733,
+    "volume_reduction_percent": 0.0,
+    "shells": 1,
+    "bed_contact_mm2": 402.4,
+    "downward_area_mm2": 272.5,
+    "old_downward_area_mm2": 272.5
+  },
+  "turntable.stl": {
+    "solid_cm3_old": 53.784,
+    "solid_cm3_new": 53.784,
+    "volume_reduction_percent": 0.0,
+    "shells": 1,
+    "bed_contact_mm2": 5968.1,
+    "downward_area_mm2": 436.1,
+    "old_downward_area_mm2": 436.1
+  },
+  "turret.stl": {
+    "solid_cm3_old": 103.125,
+    "solid_cm3_new": 103.125,
+    "volume_reduction_percent": 0.0,
+    "shells": 1,
+    "bed_contact_mm2": 9363.9,
+    "downward_area_mm2": 0.0,
+    "old_downward_area_mm2": 0.0
+  },
+  "upper_q.stl": {
+    "solid_cm3_old": 21.667,
+    "solid_cm3_new": 21.667,
+    "volume_reduction_percent": 0.0,
+    "shells": 1,
+    "bed_contact_mm2": 3723.6,
+    "downward_area_mm2": 0.0,
+    "old_downward_area_mm2": 0.0
+  },
+  "upper_qp.stl": {
+    "solid_cm3_old": 27.998,
+    "solid_cm3_new": 19.383,
+    "volume_reduction_percent": 30.77,
+    "shells": 1,
+    "bed_contact_mm2": 3230.6,
+    "downward_area_mm2": 0.0,
+    "old_downward_area_mm2": 0.0
+  }
+}

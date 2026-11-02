@@ -1,5 +1,6 @@
 """Lid for the sensor box ("킹크랩"), carrying a robot arm: SO-ARM102 (lid-v2), SO-101 (lid-v1) or our own King Crab
-arm (lid-v3, ARM=crab, ../crab-arm/).
+arm (ARM=crab, ../crab-arm/). Default: lid-v4-clean, smooth rim and blank top.
+Set LID_STYLE=spiny to reproduce the legacy lid-v3.
 
 The lid is the body's hexagon (240 across corners, R12 corners), 5 mm thick, printed top-face-down on the bed so the
 top comes out flat and smooth; everything under it points up while printing, so no supports.
@@ -33,7 +34,12 @@ import box
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 ARM = os.environ.get("ARM", "so102")
+STYLE = os.environ.get("LID_STYLE", "clean" if ARM == "crab" else "standard")
+if STYLE not in ("clean", "spiny", "standard"):
+    raise ValueError("LID_STYLE must be clean, spiny or standard")
 VERSION = {"so102": "lid-v2", "so101": "lid-v1", "crab": "lid-v3", "lidar": "lid-lidar"}[ARM]
+if ARM == "crab" and STYLE == "clean":
+    VERSION = "lid-v4-clean"
 OUT = os.path.join(HERE, VERSION)
 os.makedirs(OUT, exist_ok=True)
 REF = os.path.join(HERE, "..", "ref-dl")       # downloaded arm STLs, not committed
@@ -173,7 +179,7 @@ def lid():
     """In use orientation: plate from z = GAP to GAP + T, posts and ribs below it, z = 0 on the body's rim."""
     p = (cq.Workplane("XY").workplane(offset=GAP).polygon(6, 2 * box.L).extrude(T).edges("|Z").fillet(box.FILLET)
          .faces(">Z").edges().chamfer(1.0))
-    if ARM == "crab":
+    if ARM == "crab" and STYLE != "clean":
         p = carapace(p)
     cs = corners()
     for c in cs:
@@ -220,9 +226,10 @@ def lid():
             a = math.radians(22.5 + 360 / L["n"] * k)
             c = ((r0 + r1) / 2 * math.cos(a), (r0 + r1) / 2 * math.sin(a))
             p = p.cut(cq.Workplane("XY").center(*c).slot2D(r1 - r0 + w, w, math.degrees(a)).extrude(top + 1))
-    txt, size, depth, ty = NAME
-    p = p.cut(cq.Workplane("XY").workplane(offset=top - depth).center(0, ty)
-              .text(txt, size, depth + 1, fontPath=FONT, halign="center", valign="center"))
+    if not (ARM == "crab" and STYLE == "clean"):
+        txt, size, depth, ty = NAME
+        p = p.cut(cq.Workplane("XY").workplane(offset=top - depth).center(0, ty)
+                  .text(txt, size, depth + 1, fontPath=FONT, halign="center", valign="center"))
     return p
 
 
@@ -296,7 +303,7 @@ if __name__ == "__main__":
             a = trimesh.load(ASSY_STL)     # assembly frame: z up, base bottom z = 0, reaching -y; holes at y 45.2/-24.5
             a.apply_transform(np.array([[-1, 0, 0, 0], [0, -1, 0, 10.4], [0, 0, 1, GAP + T], [0, 0, 0, 1]], float))
             parts.append(("arm", a))
-        if ARM == "crab":                   # the arm at its home pose, for the preview
+        if ARM == "crab" and os.environ.get("PREVIEW_ARM", "1") != "0":  # optional full arm preview
             ch = crab.chain(crab.POSES["home (upright, forearm forward)"])
             for n, (wp, fr) in crab.build().items():
                 if fr != "W":
@@ -320,6 +327,8 @@ if __name__ == "__main__":
         probs += bad > 0.01
         parts.append(("base", fan))
 
+    assert probs == 0, f"Clearance check failed: {probs}"
+    assert lm.is_volume and len(lw.solids().vals()) == 1, "Invalid lid solid"
     # print orientation: top face down
     pm = lm.copy()
     pm.apply_transform(trimesh.transformations.rotation_matrix(math.pi, [1, 0, 0]))

@@ -15,6 +15,14 @@ What to print next: [QUEUE.md](QUEUE.md). Printability check of every part: [PRI
 
 First print (8 mm standoffs) sat too high; lowered to 3.5 mm, not re-fitted yet.
 
+## 킹크랩 뚜껑 — clean v4 (2026-11-02)
+
+출력 파일: `sensor-box/lid-v4-clean/lid.gcode.3mf` (2026-11-02 출력한 그 파일, 3 h 31 m / 142 g).
+가장자리 가시와 윗면 장식/문자를 제거한 매끈한 육각 뚜껑입니다.
+기존 v3의 M4 장착 구멍, M3 몸통 고정 구멍, 보강대, 10 mm 배기 간격은 유지합니다.
+생성: `ARM=crab PREVIEW_ARM=0 uv run --with cadquery --with trimesh --with numpy --with scipy --with networkx --with manifold3d --with rtree --with matplotlib --with shapely python sensor-box/lid.py`.
+이전 가시형은 `LID_STYLE=spiny`로 재생성할 수 있습니다.
+
 ## a1-cable-holder
 Bambu Lab A1 cable holder by its MakerWorld author (model 119194, CC BY-NC). It snaps onto the A1 above the X axis.
 https://makerworld.com/en/models/119194
