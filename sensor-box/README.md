@@ -104,11 +104,11 @@ Three versions from the same code (`ARM=so102` default, `ARM=so101`, `ARM=crab`)
 
 ### Lid "lidar" (`ARM=lidar` → [lid-lidar](lid-lidar/))
 
-Ouster **OS1-64** (serial 122030000171) on the lid centre. **3 h 13 m / 122 g.**
+Ouster **OS1-64** (serial 122030000171) on the lid centre. **PLA 3 h 13 m / 124 g; PETG (`lid_petg.gcode.3mf`, 255 °C / 80 °C) 4 h 41 m / 121 g.**
 - **M8 (main fixing):** the OS1's base has an M8 through hole with a 15 mm counterbore at each corner (caliper:
   8.4 / 15). Their spacing isn't measured, so four diagonal M8 slots (r 35–72: square patterns 50–102 mm across) take
   them: M8 × 35 from the top, washer + nut under the lid.
-- Eight radial M3 slots (r 18–40) for the 4 × M3 bottom holes if those are used instead; a Ø86 × 1 mm locating recess.
+- Eight radial M3 slots (r 18–40) for the 4 × M3 bottom holes if those are used instead. No Ø86 recess any more (printed face down it was an 86 mm bridge, see PRINT_AUDIT.md): the OS1 sits on the flat top, centred by eye on a 1.2 × 0.6 mm guide groove at Ø86.
 - **Fan:** 40 mm USB fan (Adafruit 6101: 40 × 40 × 10.6, M3 at 32 × 32, 5 V 0.2 A) under the centre, blowing up
   through the Ø37 vent onto the OS1's base; the ribs stop round a 42 mm square; 4 × M3 × 20 + nuts; plug into the AGX.
 - **Cable:** the slot at y −82 behind the sensor, down into the box.

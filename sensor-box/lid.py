@@ -78,7 +78,7 @@ elif ARM == "lidar":
     NUT = (5.5, 8.27, 4.2)      # M5: clearance, nut across flats (+0.27), pocket depth (nut 4.0)
     BOSS = 14.0
     CABLE_Y = -82.0             # outside the 140 mm plate (y -70)
-    LIDAR = dict(d=85.0, h=73.5, ring=86.0, ring_depth=1.0, slots=(21.0, 40.0, 3.4), n=8, vent=37.0)
+    LIDAR = dict(d=85.0, h=73.5, ring=86.0, ring_depth=0.0, guide=(1.2, 0.6), slots=(21.0, 40.0, 3.4), n=8, vent=37.0)
     # USB fan under the lid blowing up through the vent onto the OS1's base: Adafruit 6101 (devicemart ada-6101),
     # 40 x 40 x 10.6, M3 holes 32 x 32, 5 V 0.2 A, USB-A lead to the AGX. The ribs stop round it so it sits flat.
     FAN = dict(size=40.0, t=10.6, pitch=32.0, clear=42.0)
@@ -211,7 +211,13 @@ def lid():
         p = p.cut(cq.Workplane("XY").center(0, y).rect(w, l).extrude(top + 1).edges("|Z").fillet(3))
     if ARM == "lidar":
         L = LIDAR
-        p = p.cut(cq.Workplane("XY").workplane(offset=top - L["ring_depth"]).circle(L["ring"] / 2).extrude(2))
+        # no Ø86 pocket: printed top face down it was an 86 mm bridge that sags (PRINT_AUDIT.md). The OS1 sits on the
+        # flat top, centred by eye on a 1.2 mm wide, 0.6 mm deep guide groove (bridges only 1.2 mm), held by the M8s.
+        if L["ring_depth"] > 0:
+            p = p.cut(cq.Workplane("XY").workplane(offset=top - L["ring_depth"]).circle(L["ring"] / 2).extrude(2))
+        gw, gd = L["guide"]
+        p = p.cut(cq.Workplane("XY").workplane(offset=top - gd).circle(L["ring"] / 2 + gw).circle(L["ring"] / 2)
+                  .extrude(2))
         p = p.cut(cq.Workplane("XY").circle(L["vent"] / 2).extrude(top + 1))
         p = p.cut(cq.Workplane("XY").rect(FAN["clear"], FAN["clear"]).extrude(GAP))        # ribs off the fan's seat
         h = FAN["pitch"] / 2

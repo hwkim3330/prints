@@ -48,7 +48,7 @@ The reference files (`cyd/ref/`, `sensor-box/ref/`) stay gitignored.
 | **`sensor-box/lid-lidar/lid.stl`** (row 14) | 236.3 × 209.1 × 15 | yes | 2.7 mm | **3530 mm²**: the Ø86 × 1.0 mm centring recess for the OS1 | **Risk**, see below |
 | `sensor-box/v11/rail_bar.stl` (row 15, printed) | 248 × 30 × 8 | yes | 4.8 mm | 30 mm² | OK |
 
-**lid-lidar, OS1 centring recess.** The lid prints top face down, so the Ø86 × 1 mm recess (`LIDAR['ring']`,
+**lid-lidar, OS1 centring recess. Fixed 2026-11-02: option (b), `ring_depth` 0 plus a 1.2 × 0.6 mm guide groove at Ø86; re-sliced (PLA and PETG).** The lid prints top face down, so the Ø86 × 1 mm recess (`LIDAR['ring']`,
 `ring_depth`) is a pocket in the bed face. Its ceiling is a bridge 1 mm above the bed, about 86 mm across. The Ø37 fan
 vent sits in the middle of it, so the bridge has no anchor on the inside either. It is sliced with supports off, so
 that ceiling will sag towards the bed. The OS1 then sits on a wavy face instead of a flat one. I did not change the
