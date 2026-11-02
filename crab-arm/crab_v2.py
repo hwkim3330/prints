@@ -547,6 +547,76 @@ def dactyl():
     return diff(d, cutter(cuts, XTF - 0.5, XT + 0.5))
 
 
+# ---------------------------------------------------------------- printed servo dummies (assemble and pose by hand)
+# A dummy is the servo's envelope (case, ears with the same screw holes, a flat-sided boss), so it goes into the same
+# window / pocket with the same ear screws and the same clearance. The link turns on a printed HUB: the horn's outline
+# (it drops into the link's horn pocket and takes the horn screws) with a sleeve under it. The axle is one screw on
+# the spline axis, clamping the hub against the dummy's boss: tighten it until the joint holds a pose by hand.
+#   J1, J2, J3, J5: screw from the link side through the link's horn-centre hole and the hub into a pilot in the boss
+#   J4: the claw's centre recess is blind, so the screw comes from the dummy's bottom (counterbore + washer) through a
+#       clearance bore and bites into the hub
+DUMMY_JOINTS = {   # joint: (kind, axle from "top" or "bottom", boss top z, hub sleeve outline: "disc" r / "horn")
+    "j1": ("S", "top"), "j2": ("S", "top"), "j3": ("S", "top"), "j4": ("M", "bottom"), "j5": ("M", "top")}
+AXLE = {"S": dict(d=3.0, pilot=2.6, clear=3.4, cb=(8.0, 3.0)), "M": dict(d=2.0, pilot=1.7, clear=2.4, cb=(8.0, 3.0))}
+
+
+def _boss_top(s):
+    return s["TOP"] + 2.0 if s is S else s["BOSS"][1]
+
+
+def dummy_servo(kind, axle):
+    """printed servo dummy in the servo frame (prints lying on its -x side)"""
+    s = S if kind == "S" else M
+    bt = _boss_top(s)
+    br = s["BOSS"][0]
+    prof = unary_union([sbox(-s["SPL"], -s["BOT"], s["L"] - s["SPL"], s["TOP"]),
+                        sbox(s["C"] - s["SPAN"] / 2, 0, s["C"] + s["SPAN"] / 2, s["TAB"]),
+                        sbox(-br, s["TOP"] - 0.5, br, bt)])
+    prof = smooth(prof, 1.0)            # convex corners only: a concave fillet would stand proud of the envelope
+    d = soft(prof, -s["W"] / 2, s["W"] / 2, 0.8, 0.8, bed=0)
+    hx, hy = s["HOLES"]
+    rm = [zcyl((sx * hy / 2, s["C"] + sy * hx / 2), (M3C if s is S else 2.4) / 2, -1, s["TAB"] + 1, 24)
+          for sx in ((-1, 1) if hy else (0,)) for sy in (-1, 1)]
+    if axle == "top":
+        rm.append(zcyl((0, 0), AXLE[kind]["pilot"] / 2, bt - 12.0, bt + 1, 24))
+    else:                                  # M3 from the bottom: clearance bore + counterbore for head and washer
+        rm += [zcyl((0, 0), AXLE["S"]["clear"] / 2, -s["BOT"] - 1, bt + 1, 24),
+               zcyl((0, 0), AXLE["S"]["cb"][0] / 2, -s["BOT"] - 1, -s["BOT"] + AXLE["S"]["cb"][1], 32)]
+    return diff(d, *rm)
+
+
+def dummy_hub(kind, axle):
+    """printed horn replacement in the servo frame: horn outline from the boss top (+0.3) to the horn top"""
+    s = S if kind == "S" else M
+    z0 = _boss_top(s) + 0.3
+    if s is S:
+        h = union(soft(circ((0, 0), 9.0), z0, s["HORN"] - s["HT"] + 0.01, 0, 0, axis="z"),
+                  soft(circ((0, 0), s["HD"] / 2), s["HORN"] - s["HT"], s["HORN"], 0.4, 0.4, bed=1, axis="z"))
+    else:
+        a, tip = s["ARM"]
+        arm = unary_union([circ((0, 0), s["HD"] / 2), circ((0, -a), tip / 2)]).convex_hull
+        h = soft(arm, z0, s["HORN"], 0.3, 0.3, bed=1, axis="z")
+    pts = [(r * math.cos(math.radians(t)), -r * math.sin(math.radians(t))) for r, t in s["HSCREW"]]
+    rm = [zcyl(p, 1.7 / 2, z0 - 1, s["HORN"] + 1, 16) for p in pts]          # M2 horn screws bite here
+    if axle == "top":
+        rm.append(zcyl((0, 0), AXLE["S" if s is S else "M"]["clear"] / 2, z0 - 1, s["HORN"] + 1, 24))
+    else:
+        rm.append(zcyl((0, 0), AXLE["S"]["pilot"] / 2, z0 - 1, s["HORN"] + 1, 24))
+    return diff(h, *rm)
+
+
+def build_dummies():
+    """{name: (mesh in its mounting frame, frame letter)} for the 5 dummies and 5 hubs"""
+    out = {}
+    for n, kind, on, drv, sfm in SERVOS:
+        k, ax = DUMMY_JOINTS[n]
+        d = dummy_servo(k, ax); d.apply_transform(sfm)
+        h = dummy_hub(k, ax); h.apply_transform(HORN_IN[n])
+        out["dummy_" + n] = (d, on)
+        out["hub_" + n] = (h, drv)
+    return out
+
+
 # ---------------------------------------------------------------- assembly, kinematics
 def build():
     return {"turret": (turret(), "W"), "turntable": (turntable(), "T"),
@@ -680,6 +750,53 @@ if __name__ == "__main__":
         dn = (o.face_normals[:, 2] < -0.7072) & (o.triangles_center[:, 2] > 0.3)
         print(f"print {n:10s} {o.extents.round(1)}  bed contact {flat:6.0f} mm2  overhang>45 {o.area_faces[dn].sum():6.0f} mm2"
               + ("" if (o.extents[:2] <= 240).all() else "  TOO BIG"))
+    # ------------------------------------------------------------ printed servo dummies
+    print("printed servo dummies (hand-posed arm):")
+    dm = build_dummies()
+    for n, (m, fr) in dm.items():
+        print(f"  {n:9s} {m.extents.round(1)}  watertight={m.is_watertight}  bodies={len(m.split(only_watertight=False))}"
+              f"  {m.volume / 1000:5.1f} cm3")
+    pairs_ok = {("dummy_" + n, part) for n, part in [("j1", "turret"), ("j2", "turntable"), ("j3", "upper_q"), ("j4", "fore_f"),
+                                                      ("j5", "claw"), ("j3", "cover_j3"), ("j4", "cover_j4")]}
+    pairs_ok |= {("hub_" + n, part) for n, part in [("j1", "turntable"), ("j2", "upper_q"), ("j3", "fore_f"), ("j4", "claw"),
+                                                     ("j5", "dactyl")]}
+    pairs_ok |= {("dummy_" + n, "hub_" + n) for n in DUMMY_JOINTS} | {("turret", "lid")}
+    pairs_ok |= {p for p in allowed if not any(("_case" in x or "_horn" in x) for x in p)}
+    allm_d = {**meshes, **dm, "lid": (lm, "W")}
+    probs_d = 0
+    for pname, q in POSES.items():
+        ch = chain(q)
+        world = {}
+        for n, (m, fr) in allm_d.items():
+            w = m.copy(); w.apply_transform(ch[fr]); world[n] = w
+        bad = []
+        for a, b in itertools.combinations(world, 2):
+            ma, mb = world[a], world[b]
+            if (ma.bounds[0] > mb.bounds[1]).any() or (mb.bounds[0] > ma.bounds[1]).any():
+                continue
+            v = trimesh.boolean.intersection([ma, mb], engine="manifold").volume
+            lim = 0.5 if ((a, b) in pairs_ok or (b, a) in pairs_ok) else 0.05
+            if v > lim:
+                bad.append(f"{a}/{b} {v:.1f} mm3")
+        print(f"  pose {pname:34s} " + ("OK" if not bad else "HITS: " + ", ".join(bad)))
+        probs_d += len(bad)
+    print("  collision problems with dummies:", probs_d)
+    # same envelope as the servo dummy used for the real-servo check (so the same clearances in every pocket)
+    for n, kind, on, drv, sfm in SERVOS:
+        real, _ = C.servo_dummy(kind)
+        k = dm["dummy_" + n][0].copy(); k.apply_transform(np.linalg.inv(sfm))
+        out_ = diff(k, real).volume
+        print(f"  {n} dummy outside the real servo envelope: {out_:.2f} mm3")
+    for n, (m, fr) in dm.items():
+        j = n.split("_")[1]
+        sfm = dict((x[0], x[4]) for x in SERVOS)[j] if n.startswith("dummy") else HORN_IN[j]
+        loc = m.copy(); loc.apply_transform(np.linalg.inv(sfm))                    # back to the servo frame
+        o = lay(loc, *((0, -90) if n.startswith("dummy") else (180, 0)))
+        o.export(os.path.join(OUT, n + ".stl"))
+        flat = o.area_faces[(o.face_normals[:, 2] < -0.999) & (o.triangles_center[:, 2] < 0.01)].sum()
+        dn = (o.face_normals[:, 2] < -0.7072) & (o.triangles_center[:, 2] > 0.3)
+        print(f"  print {n:9s} {o.extents.round(1)}  bed contact {flat:5.0f} mm2  overhang>45 {o.area_faces[dn].sum():4.0f} mm2")
+
     import render_v2
     render_v2.preview(meshes, dummies, lm, body, POSES, chain, os.path.join(OUT, "preview.png"))
 
