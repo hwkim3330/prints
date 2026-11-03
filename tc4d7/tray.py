@@ -76,8 +76,9 @@ def mesh(wp, name):
 if __name__ == "__main__":
     os.makedirs(OUT, exist_ok=True)
     mesh(tray(), "tray")
+    mesh(spacer(), "spacer")                 # print 4; out/spacer1-4.stl are the copies the slicer plate uses
     for i in range(4):
-        mesh(spacer().translate((0, 0, 0)), f"spacer{i + 1}")
+        mesh(spacer(), f"spacer{i + 1}")
     # board clearance: every hole sits on the floor's bolt pad, and the PCB outline is inside the wall with GAP
     inner = (L - 2 * WALL, W - 2 * WALL)
     print(f"tray {L:.1f} x {W:.1f} x {FLOOR + WALL_H:.1f}; board {PCB[0]} x {PCB[1]} in {inner[0]:.1f} x {inner[1]:.1f}; "
