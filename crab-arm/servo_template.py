@@ -97,13 +97,14 @@ def arm_horn(ax, m, c):
          color=DIM)
 
 
-def scale(ax, x, y):
+def scale(ax, x, y, square=True):
     ax.plot([x, x + 100], [y, y], color=INK, lw=1.0)
     for i in range(0, 101, 10):
         ax.plot([x + i, x + i], [y, y + (3 if i % 50 == 0 else 1.5)], color=INK, lw=0.6)
     text(ax, x, y + 4, "100 mm: 자로 재서 맞는지 먼저 확인 (안 맞으면 '실제 크기'로 다시 인쇄)", 7)
-    ax.add_patch(Rectangle((x + 110, y - 2), 50, 50, fill=False, lw=0.6, ec=INK))
-    text(ax, x + 112, y + 22, "50 × 50 mm", 7)
+    if square:
+        ax.add_patch(Rectangle((x + 110, y - 2), 50, 50, fill=False, lw=0.6, ec=INK))
+        text(ax, x + 112, y + 22, "50 × 50 mm", 7)
 
 
 def main():
@@ -142,6 +143,30 @@ def main():
             text(ax, 155, y, str(b), 7.5, color=DIM)
         text(ax, 15, y - 15, "사진으로 보내도 됨: 서보를 템플릿 위에 올린 채 위에서 한 장, 옆에서 한 장.", 8)
         text(ax, 15, y - 22, "이 값으로 crab.py 의 S / M 을 고치면 팔·더미·충돌 검사가 전부 따라감.", 8)
+        pdf.savefig(fig); plt.close(fig)
+
+        # FIT0450 (DFRobot TT gearmotor + encoder), as ioniq6-testbed/gen/params.py assumes it
+        fig, ax = page()
+        L, W, H, sh = 75.4, 18.8, 22.5, 11.5
+        text(ax, 15, 282, "FIT0450 TT 기어모터 1:1  (아이오닉 주행용 뒷바퀴)", 13, weight="bold")
+        text(ax, 15, 276, "모터를 그림 위에 올려 보기: 기어박스 끝에서 출력축 중심까지가 제일 중요", 8)
+        for y0, h, name in ((215, W, "위에서 (축 방향 두께, 축 제외)"), (150, H, "옆에서 (높이)")):
+            ax.add_patch(Rectangle((40, y0), L, h, fill=False, lw=0.8, ec=INK))
+            ax.plot(40 + L - sh, y0 + h / 2, "+", color=INK, ms=6, mew=0.8)
+            text(ax, 40, y0 + h + 3, name, 8, weight="bold")
+            text(ax, 40, y0 - 5, f"{L} × {h}   축 중심: 기어박스 끝(오른쪽)에서 {sh}", 6.5, color=DIM)
+        ax.add_patch(Circle((70, 100), 5.4 / 2, fill=False, lw=0.8, ec=INK))
+        ax.plot([70 - 1.85, 70 - 1.85], [97.4, 102.6], color=INK, lw=0.6)
+        ax.plot([70 + 1.85, 70 + 1.85], [97.4, 102.6], color=INK, lw=0.6)
+        text(ax, 40, 108, "출력축 단면 (양쪽 D컷, 일반 TT 값)", 8, weight="bold")
+        text(ax, 40, 90, "지름 5.4  평면 사이 3.7  (축 길이도 재기: 기어박스 면 → 축 끝)", 6.5, color=DIM)
+        rows = [("몸통 길이", L), ("축 방향 두께", W), ("높이", H), ("기어박스 끝 → 축 중심", sh), ("축 지름 / 평면 사이", "5.4 / 3.7"),
+                ("축 길이 (면 → 끝)", "8.9"), ("고정 구멍 위치·지름", "")]
+        y = 80
+        for name, a in rows:
+            text(ax, 15, y, name, 7.5); text(ax, 85, y, str(a), 7.5, color=DIM); text(ax, 120, y, "실측: ________", 7.5)
+            y -= 8
+        scale(ax, 15, 12, square=False)
         pdf.savefig(fig); plt.close(fig)
     print(out)
 
