@@ -79,6 +79,10 @@ def tray():
         t = t.union(post(p))
     t = t.cut(cq.Workplane("XY").pushPoints(pts).circle(POST[1] / 2).extrude(FLOOR + LIFT + 1))
     t = t.cut(cq.Workplane("XY").pushPoints(pts).circle(CBORE[0] / 2).extrude(CBORE[1]))
+    # the counterbores are on the bed face: stepped bridges (a slot across, then a square, then the bore) instead of a
+    # ring floating round the bore
+    for n, (sx, sy) in enumerate(((CBORE[0], POST[1]), (POST[1], POST[1]))):
+        t = t.cut(cq.Workplane("XY").workplane(offset=CBORE[1] + 0.2 * n).pushPoints(pts).rect(sx, sy).extrude(0.2))
     t = t.cut(cq.Workplane("XY").pushPoints(vents(pts)).slot2D(SLOT, VENT[0], 90).extrude(FLOOR + 1))
     return t
 
