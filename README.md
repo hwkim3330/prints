@@ -82,3 +82,12 @@ and carries the CYD case on top: open at both ends, printed standing (no bridges
 the wide face that follows the case outline; stick the case in with foam tape, join with a short USB-A to USB-C
 cable. `out/sleeve.gcode.3mf`: 1 h 08 m, 39 g.
 
+
+## ioniq-controls/
+
+IONIQ 6-style interior controls on the user's 10 Gateron Yellow switches, wired straight to a mikroBUS socket
+(pin map in [ioniq-controls/README.md](ioniq-controls/README.md), Korean). Console "bridge" panel with 7 switches
+(4 power windows, START/STOP in a 45-degree ring, parking assist, camera; caps stop on the plate at 3.6 mm) and a
+column drive selector (twist the end ring up/down = D/R, centred by the two switches' own springs; push the end
+button = P). Flat on the bed, no supports, no brim, no clips, no posts, 0 mm2 of floating faces on every part.
+`stem_tester.gcode.3mf` 14 m / 2.5 g (print first), `panel.gcode.3mf` 4 h 08 m / 154 g, `stalk.gcode.3mf` 3 h 28 m / 113 g.
