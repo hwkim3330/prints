@@ -201,6 +201,11 @@ def lid():
     top = GAP + T
     p = p.cut(cq.Workplane("XY").pushPoints(cs).circle(M3[0] / 2).extrude(top + 1))
     p = p.cut(cq.Workplane("XY").workplane(offset=top - M3[2]).pushPoints(cs).circle(M3[1] / 2).extrude(M3[2] + 1))
+    # printed top face down, so the counterbore's ceiling would be a floating ring round the hole: stepped bridges
+    # instead, one 0.2 mm layer with a slot the hole's width across the counterbore, then a square, then the hole
+    for c in cs:
+        for n, (sx, sy) in enumerate(((M3[1], M3[0]), (M3[0], M3[0]))):
+            p = p.cut(cq.Workplane("XY").workplane(offset=top - M3[2] - 0.2 * (n + 1)).center(*c).rect(sx, sy).extrude(0.2))
     p = p.cut(cq.Workplane("XY").pushPoints(hs).circle(NUT[0] / 2).extrude(top + 1))
     p = p.cut(cq.Workplane("XY").workplane(offset=under - 0.01).pushPoints(hs).polygon(6, NUT[1] / math.cos(math.radians(30)))
               .extrude(NUT[2]))

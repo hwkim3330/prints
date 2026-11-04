@@ -48,6 +48,7 @@ WEB_U = (32.0, 50.0)         # web screw stations along the upper arm (same as c
 WEB_F = (30.0, 48.0)
 CB = (6.4, 2.2)              # counterbore for M3 heads on outer faces: diameter, depth
 CBP = (7.2, 2.0)             # idler pivots: room for the head + washer to turn
+BRIDGE_L = 0.2               # one 0.2 mm layer per bridge step over a bed-side counterbore
 R_PALM, R_PALM_BED = 9.0, 7.0     # the claw's edge rounds, top (+x) and bed side (smaller where the outline is tight)
 XTF = 12.55                  # the fingers' inner (-x) face: both fingers are XT - XTF = 12 thick
 TIP = (106.0, -1.5)          # fixed finger tip in the claw frame (for the IK)
@@ -421,6 +422,16 @@ def plate(outline, xr, bed, cuts=None, holes=(), cb=(), cbp=()):
     for (y, z, face), (d, depth) in [(e, CB) for e in cb] + [(e, CBP) for e in cbp]:
         x0, x1 = (xr[0] - 1, xr[0] + depth) if face == 0 else (xr[1] - depth, xr[1] + 1)
         rm.append(xcyl((y, z), d / 2, x0, x1, 40))
+        if face == bed:
+            # bed-side counterbore: its ceiling would be a floating ring round the hole. Stepped bridges instead:
+            # one layer with a slot the hole's width across the whole counterbore (two bridges anchored on its rim),
+            # then a square the hole's size (bridges across the slot), then the round hole.
+            s = 1 if face == 0 else -1
+            xa = xr[face] + s * depth
+            for n, (ly, lz) in enumerate(((d, M3C), (M3C, M3C))):
+                b = trimesh.creation.box((BRIDGE_L, ly, lz))
+                b.apply_translation((xa + s * BRIDGE_L * (n + 0.5), y, z))
+                rm.append(b)
     return diff(p, *rm) if rm else p
 
 
