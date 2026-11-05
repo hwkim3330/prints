@@ -31,6 +31,17 @@ def splice():
         p = p.cut(pedal.hole(0,y,-1,6.6,8))
     return p
 
+def cover():
+    # Roof-down print. Thin cosmetic walls; the four screws carry the cover.
+    outer = drive.slab(130, 90, 94, 9).faces("<Z").edges().chamfer(.6)
+    cavity = drive.slab(126, 86, 93, 7.5).translate((0, 0, 2.4))
+    cover = outer.cut(cavity)
+    cover = cover.cut(cq.Workplane("XY").pushPoints(drive.POSTS).circle(1.7).extrude(3))
+    for x, y, height in ((65, 15, 72), (-65, 0, 24)):
+        cut = cq.Workplane("XY").box(12, 15, height + 1)
+        cover = cover.cut(cut.translate((x, y, 94 - height / 2)))
+    return cover
+
 def mirror(part):
     return part.mirror("YZ")
 
@@ -62,7 +73,7 @@ def assembly(brake=False, covered=True):
     for x,y in drive.POSTS:
         pod.append(("post",drive.spacer().translate((x,y,6))))
     if covered:
-        pod.append(("cover",drive.lid().rotate((0,0,0),(1,0,0),180).translate((0,0,100))))
+        pod.append(("cover",cover().rotate((0,0,0),(1,0,0),180).translate((0,0,100))))
     for name,part in pod:
         if brake: part=mirror(part)
         shapes.append((name,part.translate((0,POD_Y,0))))
@@ -83,7 +94,7 @@ HANDED={
     "motor-base":pod_deck,
     "motor-plate":drive.servo_plate,
     "cable-guide":drive.tower_print,
-    "cover":drive.lid,
+    "cover":cover,
     "rotation-stop":drive.stop_sector,
 }
 PARTS={name:fn() for name,fn in SHARED.items()}
