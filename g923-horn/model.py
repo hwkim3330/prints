@@ -5,8 +5,13 @@ from manifold3d import Manifold as M, CrossSection as C
 import trimesh
 
 OUT = Path(__file__).resolve().parent
-HORN_INNER = 7.5
-HORN_OUTER = 17
+HORN_DIAMETER = 32
+HUB_DIAMETER = 8
+ARM_WIDTH = 4.2  # Provisional: measure the actual arm at its widest point.
+ARM_THICKNESS = 2
+FIT_CLEARANCE = 0.3  # Per mating side.
+HORN_INNER = 6.5
+HORN_OUTER = 14.5
 DRUM_RADIUS = 15
 BOLT_CIRCLE = 20
 ANCHOR_RADIUS = 16.3
@@ -18,15 +23,28 @@ def hole(r, h, angle, radius, z=-1):
     a = radians(angle)
     return disc(r,h,z).translate((radius*cos(a),radius*sin(a),0))
 
+def horn_pocket():
+    radius = HORN_DIAMETER / 2
+    half_width = ARM_WIDTH / 2 + FIT_CLEARANCE
+    depth = ARM_THICKNESS + FIT_CLEARANCE
+    pocket = C.circle(HUB_DIAMETER / 2 + FIT_CLEARANCE, circular_segments=64)
+    # A rounded tip keeps the specified center-to-tip dimension.
+    cap = C.circle(half_width, circular_segments=32)
+    tip = cap.translate((radius + FIT_CLEARANCE - half_width, 0))
+    arm = (cap + tip).hull()
+    for angle in range(0,360,60):
+        pocket += arm.rotate(angle)
+    return pocket.extrude(depth + 1).translate((0,0,-1))
+
 def horn_plate():
     # Existing horn screws into this flat plate via any 3 opposing/symmetric slots.
     # The central service opening passes the original spline-retaining screw.
-    plate = disc(24, 4.5) - disc(4.8, 7, -1)
+    plate = disc(24, 5.5) - disc(4.8, 8, -1).rotate((0,0,1.7)) - horn_pocket()
     for a in range(0,360,60):
-        slot = (hole(1.25, 7, a, HORN_INNER) + hole(1.25, 7, a, HORN_OUTER)).hull()
+        slot = (hole(1.25, 8, a, HORN_INNER) + hole(1.25, 8, a, HORN_OUTER)).hull()
         plate -= slot
     for a in (30,150,270):
-        plate -= hole(1.7, 7, a, BOLT_CIRCLE)
+        plate -= hole(1.7, 8, a, BOLT_CIRCLE)
     return plate
 
 def spacer():
@@ -55,13 +73,13 @@ def drum():
     return piece
 
 def export(shape, filename):
-    m = shape.to_mesh()
+    m = shape.simplify(0.001).to_mesh()
     part = trimesh.Trimesh(m.vert_properties[:,:3],m.tri_verts)
     assert part.is_volume and len(shape.decompose())==1, filename
     part.export(OUT/filename)
     print(filename, part.extents.round(1), round(part.volume/1000,2))
 
 if __name__ == '__main__':
-    export(horn_plate(),'01-six-arm-fit-plate.stl')
+    export(horn_plate().rotate((180,0,0)).translate((0,0,5.5)),'01-six-arm-fit-plate.stl')
     export(drum(),'02-15mm-cable-drum.stl')
     export(spacer(),'03-fastener-spacer.stl')
