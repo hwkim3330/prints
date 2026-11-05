@@ -462,7 +462,7 @@ def fore_fp():
 # ---- J3 servo cover: a smooth shell over the MG996R on the upper arm's outer plate, so the merus reads as one leg
 # segment. It clamps the servo's two J3-end ears with the same M3 screws (counterbored from the top; M3 x 16), the
 # J2-end ears are screwed first as before (their heads and the lead sit in the cover's open end).
-def servo_cover(s, face, sx, L, outline, half=None, top=2.4):
+def servo_cover(s, face, sx, L, outline, half=None, top=2.4, cable_relief=False):
     """Shell over a servo standing on a link's outer plate (face = plate's outer face x, sx = tab undersides x, servo
     spline at y = L, case towards the link's start). Clamps the spline-end ear(s) with the ear screw(s), counterbored
     from the top; the far-end ears are screwed first and sit in the cover's open end with the lead."""
@@ -475,10 +475,18 @@ def servo_cover(s, face, sx, L, outline, half=None, top=2.4):
     c = soft(fp, x0, x1, 1.0, min(6.0, half - 1.5), bed=1)
     ear = (yc - s["SPAN"] / 2 - 0.25, yc + s["SPAN"] / 2 + 0.25)
     case = (L - (s["L"] - s["SPL"]) - 0.5, L + s["SPL"] + 0.5)
+    # The rear plug and its bend need more space than the loose wire.
+    # The open-bottom relief lets the cover drop over an attached lead.
+    exit_half = min(w2 - 0.7, 6.5 if s is S else 5.0)
+    exit_depth = 10.0 if s is S else 8.0
+    exit_profile = smooth(sbox(cy[0] - 2, -exit_half, case[0] + 0.3, exit_half), 1.25)
+    if not cable_relief:
+        exit_profile = sbox(cy[0] - 1, -min(4.0, w2 - 1), ear[0] + 0.1, min(4.0, w2 - 1))
+        exit_depth = 4.0
     rm = [soft(sbox(ear[0], -w2, ear[1], w2), x0 - 1, sx),                       # ears (the cover rests on them)
           soft(sbox(case[0], -w2, case[1], w2), x0 - 1, x1 - top),               # case
           soft(sbox(ear[0], -w2, case[0] + 0.1, w2), x0 - 1, x1 - top),          # far end: screw heads + lead
-          soft(sbox(cy[0] - 1, -min(4.0, w2 - 1), ear[0] + 0.1, min(4.0, w2 - 1)), x0 - 1, x0 + 4.0)]   # lead out
+          soft(exit_profile, x0 - 1, x0 + exit_depth)]                                   # connector and bend relief
     hx, hy = s["HOLES"]
     for sz in ((-1, 1) if hy else (0,)):
         h = (yc + hx / 2, sz * hy / 2)
@@ -486,14 +494,14 @@ def servo_cover(s, face, sx, L, outline, half=None, top=2.4):
     return diff(c, *rm)
 
 
-def cover_j3():
+def cover_j3(cable_relief=False):
     """MG996R J3 on the upper arm: the merus reads as one leg segment. M3 x 16 through the cover into Q."""
-    return servo_cover(S, Q[1], C.S3X, L1, upper_outline(), half=12.6)
+    return servo_cover(S, Q[1], C.S3X, L1, upper_outline(), half=12.6, cable_relief=cable_relief)
 
 
-def cover_j4():
+def cover_j4(cable_relief=False):
     """MG90S J4 on the forearm. M2 x 10 through the cover into F."""
-    return servo_cover(M, F[1], C.S4X, L2, fore_outline(), top=2.0)
+    return servo_cover(M, F[1], C.S4X, L2, fore_outline(), top=2.0, cable_relief=cable_relief)
 
 
 def web(st, xr):
@@ -704,6 +712,14 @@ def scene_meshes():
 
 
 if __name__ == "__main__":
+    if sys.argv[1:] == ["--cable-covers"]:
+        out = os.path.join(HERE, "v2-cable")
+        os.makedirs(out, exist_ok=True)
+        for name, make_cover in (("cover_j3", cover_j3), ("cover_j4", cover_j4)):
+            m = lay(make_cover(cable_relief=True), *ORIENT[name])
+            assert m.is_volume and m.is_watertight and len(m.split()) == 1, name
+            m.export(os.path.join(out, name + ".stl"))
+        sys.exit(0)
     print(f"x stack (crab.py): Q {Q}  Q' {QP}  F {F}  F' {FP}  knuckle {XK}  dactyl {XD}  J2 z {Z2:.1f}")
     parts, dummies, lm, body = scene_meshes()
     meshes = {}

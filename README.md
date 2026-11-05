@@ -91,3 +91,7 @@ IONIQ 6-style interior controls on the user's 10 Gateron Yellow switches, wired 
 column drive selector (twist the end ring up/down = D/R, centred by the two switches' own springs; push the end
 button = P). Flat on the bed, no supports, no brim, no clips, no posts, 0 mm2 of floating faces on every part.
 `stem_tester.gcode.3mf` 14 m / 2.5 g (print first), `panel.gcode.3mf` 4 h 08 m / 154 g, `stalk.gcode.3mf` 3 h 28 m / 113 g.
+
+## pedal-deck/
+
+Dual MG996R tabletop brake and accelerator display with an ATOM dock. [Assembly, cable routing and A1 print files](pedal-deck/README.md).
