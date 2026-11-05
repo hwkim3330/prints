@@ -9,6 +9,7 @@ HORN_INNER = 7.5
 HORN_OUTER = 17
 DRUM_RADIUS = 15
 BOLT_CIRCLE = 20
+ANCHOR_RADIUS = 16.3
 
 def disc(r, h, z=0):
     return M.cylinder(h, r, circular_segments=96).translate((0,0,z))
@@ -32,7 +33,7 @@ def spacer():
     ring = disc(24, 3.4) - disc(18.5, 5, -1)
     for a in (30,150,270):
         ring -= hole(1.7, 6, a, BOLT_CIRCLE)
-    return ring
+    return ring - hole(3.1, 6, 90, ANCHOR_RADIUS)
 
 def drum():
     flange = disc(24,3.2)
@@ -46,8 +47,11 @@ def drum():
     # Fastener heads and washers sit on the lower flange outside the cable path.
     for a in (30,150,270):
         piece -= hole(1.7, 6, a, BOLT_CIRCLE)
-    # Tie the cable through the upper flange into the exposed winding groove.
-    piece -= hole(1.1, 4, 90, 16.8, 12)
+    # Steel anchor passes through both flanges. The wire eye sits on
+    # the smooth shank inside the winding groove.
+    piece -= hole(1.35, 18, 90, ANCHOR_RADIUS)
+    # Recess the head so the spool can sit under a close-fitting cover.
+    piece -= hole(2.35, 1.4, 90, ANCHOR_RADIUS, 14.1)
     return piece
 
 def export(shape, filename):
