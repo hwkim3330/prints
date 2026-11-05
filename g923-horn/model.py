@@ -25,7 +25,7 @@ def horn_plate():
         slot = (hole(1.25, 7, a, HORN_INNER) + hole(1.25, 7, a, HORN_OUTER)).hull()
         plate -= slot
     for a in (30,150,270):
-        plate -= hole(1.35, 7, a, BOLT_CIRCLE)
+        plate -= hole(1.7, 7, a, BOLT_CIRCLE)
     return plate
 
 def spacer():
