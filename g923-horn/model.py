@@ -6,8 +6,10 @@ import trimesh
 
 OUT = Path(__file__).resolve().parent
 HORN_DIAMETER = 32
-HUB_DIAMETER = 8
-ARM_WIDTH = 4.2  # Provisional: measure the actual arm at its widest point.
+ARM_WIDTH = 7.32
+TIP_WIDTH = 4.6
+VALLEY_RADIUS = 8.1  # Paper option 01; assumed 3 mm bore, near edge.
+SHOULDER_RADIUS = 8.8
 ARM_THICKNESS = 2
 FIT_CLEARANCE = 0.3  # Per mating side.
 HORN_INNER = 6.5
@@ -25,15 +27,22 @@ def hole(r, h, angle, radius, z=-1):
 
 def horn_pocket():
     radius = HORN_DIAMETER / 2
-    half_width = ARM_WIDTH / 2 + FIT_CLEARANCE
+    tip_radius = TIP_WIDTH / 2
+    tip_center = radius - tip_radius
+    valley_x = VALLEY_RADIUS * cos(radians(30))
+    valley_y = VALLEY_RADIUS * sin(radians(30))
+    arm = [(valley_x, -valley_y), (SHOULDER_RADIUS, -ARM_WIDTH / 2)]
+    for angle in range(-90, 91, 5):
+        t = radians(angle)
+        arm.append((tip_center + tip_radius*cos(t), tip_radius*sin(t)))
+    arm.append((SHOULDER_RADIUS, ARM_WIDTH / 2))
+
+    outline = []
+    for angle in range(0, 360, 60):
+        t = radians(angle)
+        outline.extend((x*cos(t)-y*sin(t), x*sin(t)+y*cos(t)) for x,y in arm)
+    pocket = C([outline]).offset(FIT_CLEARANCE, circular_segments=48)
     depth = ARM_THICKNESS + FIT_CLEARANCE
-    pocket = C.circle(HUB_DIAMETER / 2 + FIT_CLEARANCE, circular_segments=64)
-    # A rounded tip keeps the specified center-to-tip dimension.
-    cap = C.circle(half_width, circular_segments=32)
-    tip = cap.translate((radius + FIT_CLEARANCE - half_width, 0))
-    arm = (cap + tip).hull()
-    for angle in range(0,360,60):
-        pocket += arm.rotate(angle)
     return pocket.extrude(depth + 1).translate((0,0,-1))
 
 def horn_plate():
