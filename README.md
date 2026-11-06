@@ -95,3 +95,7 @@ button = P). Flat on the bed, no supports, no brim, no clips, no posts, 0 mm2 of
 ## pedal-deck/
 
 Dual MG996R tabletop brake and accelerator display with an ATOM dock. [Assembly, cable routing and A1 print files](pedal-deck/README.md).
+
+## 독립형 두 페달 V5
+
+[Dual Pedals V5](dual-pedals-v5/README.md): MG996R 두 개, 6발 혼 결합 롤러 암, 공용 PETG 베이스. CAD/STL/STEP, A1 PETG 4판과 맞춤 시험편, 조립 BOM 및 21개 위치 간섭 검사 포함. 실물 하중·수명은 아직 검증하지 않은 기구 시제품이다.

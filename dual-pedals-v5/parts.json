@@ -1,0 +1,90 @@
+{
+  "01-common-base": {
+    "bbox_mm": [
+      242.0,
+      242.0,
+      36.09
+    ],
+    "volume_cm3": 492.13
+  },
+  "02-cheek-x4": {
+    "bbox_mm": [
+      64.0,
+      36.0,
+      20.0
+    ],
+    "volume_cm3": 23.32
+  },
+  "03-throttle": {
+    "bbox_mm": [
+      106.0,
+      174.0,
+      32.0
+    ],
+    "volume_cm3": 159.67
+  },
+  "04-brake": {
+    "bbox_mm": [
+      106.0,
+      174.0,
+      32.0
+    ],
+    "volume_cm3": 169.65
+  },
+  "05-servo-carrier-x2": {
+    "bbox_mm": [
+      86.0,
+      70.0,
+      48.0
+    ],
+    "volume_cm3": 60.35
+  },
+  "06-six-arm-lever-x2": {
+    "bbox_mm": [
+      83.0,
+      60.0,
+      8.0
+    ],
+    "volume_cm3": 15.57
+  },
+  "07-roller-spacer-x2": {
+    "bbox_mm": [
+      7.6,
+      7.6,
+      2.0
+    ],
+    "volume_cm3": 0.05
+  },
+  "08-axle-spacer-x4": {
+    "bbox_mm": [
+      12.0,
+      12.0,
+      9.5
+    ],
+    "volume_cm3": 0.55
+  },
+  "00-fit-coupon": {
+    "bbox_mm": [
+      96.0,
+      48.0,
+      5.0
+    ],
+    "volume_cm3": 19.61
+  },
+  "09-bearing-cap-x4": {
+    "bbox_mm": [
+      32.0,
+      32.0,
+      3.0
+    ],
+    "volume_cm3": 1.9
+  },
+  "10-servo-fit-coupon": {
+    "bbox_mm": [
+      68.0,
+      36.0,
+      4.0
+    ],
+    "volume_cm3": 6.12
+  }
+}

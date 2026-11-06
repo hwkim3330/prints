@@ -1,0 +1,102 @@
+{
+  "A-base": {
+    "hours": 13.83,
+    "grams": 355.1,
+    "warnings": "",
+    "objects": [
+      {
+        "bbox": {
+          "depth": 242.0,
+          "height": 36.08708953857422,
+          "width": 242.0,
+          "x": 7.0,
+          "y": 7.000010013580322,
+          "z": 0.0
+        },
+        "id": 5,
+        "name": "A-base.stl",
+        "triangle_count": 12940
+      }
+    ]
+  },
+  "B-pedals": {
+    "hours": 15.23,
+    "grams": 307.82,
+    "warnings": "",
+    "objects": [
+      {
+        "bbox": {
+          "depth": 174.0,
+          "height": 31.992916107177734,
+          "width": 224.0,
+          "x": 15.999990463256836,
+          "y": 40.9999885559082,
+          "z": 0.0
+        },
+        "id": 5,
+        "name": "B-pedals.stl",
+        "triangle_count": 10256
+      }
+    ]
+  },
+  "C-hardware": {
+    "hours": 6.36,
+    "grams": 134.86,
+    "warnings": "",
+    "objects": [
+      {
+        "bbox": {
+          "depth": 200.9982147216797,
+          "height": 20.0,
+          "width": 197.0,
+          "x": 29.499990463256836,
+          "y": 27.500900268554688,
+          "z": 0.0
+        },
+        "id": 5,
+        "name": "C-hardware.stl",
+        "triangle_count": 37680
+      }
+    ]
+  },
+  "E-carriers": {
+    "hours": 7.68,
+    "grams": 143.93,
+    "warnings": "",
+    "objects": [
+      {
+        "bbox": {
+          "depth": 70.0,
+          "height": 48.0,
+          "width": 186.0,
+          "x": 35.0,
+          "y": 93.00000762939453,
+          "z": 0.0
+        },
+        "id": 5,
+        "name": "E-carriers.stl",
+        "triangle_count": 8640
+      }
+    ]
+  },
+  "D-fit-coupon": {
+    "hours": 1.17,
+    "grams": 26.3,
+    "warnings": "",
+    "objects": [
+      {
+        "bbox": {
+          "depth": 96.0,
+          "height": 5.0,
+          "width": 96.0,
+          "x": 79.99999237060547,
+          "y": 80.0,
+          "z": 0.0
+        },
+        "id": 5,
+        "name": "D-fit-coupon.stl",
+        "triangle_count": 5348
+      }
+    ]
+  }
+}

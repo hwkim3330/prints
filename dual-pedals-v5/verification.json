@@ -1,0 +1,253 @@
+{
+  "status": "CAD checks only; physical fit/load untested",
+  "rigid_collisions_mm3": [],
+  "manual_min_gap_mm": -1.4210854715202004e-14,
+  "angle_states": [
+    {
+      "percent": 0,
+      "pedal_deg": 18.0,
+      "servo_relative_deg": 34.349,
+      "roller_track_mm": 142.109,
+      "contact_error_mm": -0.0,
+      "spring_eye_length_mm": 74.794,
+      "spring_only_torque_Nm": 0.1405,
+      "gravity_Nm": 0.0909,
+      "estimated_servo_Nm": 0.0332
+    },
+    {
+      "percent": 5,
+      "pedal_deg": 17.3,
+      "servo_relative_deg": 31.524,
+      "roller_track_mm": 139.794,
+      "contact_error_mm": -0.0,
+      "spring_eye_length_mm": 75.092,
+      "spring_only_torque_Nm": 0.1486,
+      "gravity_Nm": 0.0913,
+      "estimated_servo_Nm": 0.0385
+    },
+    {
+      "percent": 10,
+      "pedal_deg": 16.6,
+      "servo_relative_deg": 28.925,
+      "roller_track_mm": 137.744,
+      "contact_error_mm": -0.0,
+      "spring_eye_length_mm": 75.389,
+      "spring_only_torque_Nm": 0.1567,
+      "gravity_Nm": 0.0916,
+      "estimated_servo_Nm": 0.0438
+    },
+    {
+      "percent": 15,
+      "pedal_deg": 15.9,
+      "servo_relative_deg": 26.506,
+      "roller_track_mm": 135.912,
+      "contact_error_mm": 0.0,
+      "spring_eye_length_mm": 75.684,
+      "spring_only_torque_Nm": 0.1645,
+      "gravity_Nm": 0.092,
+      "estimated_servo_Nm": 0.0492
+    },
+    {
+      "percent": 20,
+      "pedal_deg": 15.2,
+      "servo_relative_deg": 24.23,
+      "roller_track_mm": 134.262,
+      "contact_error_mm": 0.0,
+      "spring_eye_length_mm": 75.978,
+      "spring_only_torque_Nm": 0.1723,
+      "gravity_Nm": 0.0923,
+      "estimated_servo_Nm": 0.0545
+    },
+    {
+      "percent": 25,
+      "pedal_deg": 14.5,
+      "servo_relative_deg": 22.074,
+      "roller_track_mm": 132.767,
+      "contact_error_mm": 0.0,
+      "spring_eye_length_mm": 76.271,
+      "spring_only_torque_Nm": 0.1799,
+      "gravity_Nm": 0.0926,
+      "estimated_servo_Nm": 0.0599
+    },
+    {
+      "percent": 30,
+      "pedal_deg": 13.8,
+      "servo_relative_deg": 20.016,
+      "roller_track_mm": 131.409,
+      "contact_error_mm": 0.0,
+      "spring_eye_length_mm": 76.562,
+      "spring_only_torque_Nm": 0.1874,
+      "gravity_Nm": 0.0929,
+      "estimated_servo_Nm": 0.0652
+    },
+    {
+      "percent": 35,
+      "pedal_deg": 13.1,
+      "servo_relative_deg": 18.043,
+      "roller_track_mm": 130.172,
+      "contact_error_mm": -0.0,
+      "spring_eye_length_mm": 76.853,
+      "spring_only_torque_Nm": 0.1948,
+      "gravity_Nm": 0.0931,
+      "estimated_servo_Nm": 0.0704
+    },
+    {
+      "percent": 40,
+      "pedal_deg": 12.4,
+      "servo_relative_deg": 16.141,
+      "roller_track_mm": 129.044,
+      "contact_error_mm": 0.0,
+      "spring_eye_length_mm": 77.141,
+      "spring_only_torque_Nm": 0.202,
+      "gravity_Nm": 0.0934,
+      "estimated_servo_Nm": 0.0757
+    },
+    {
+      "percent": 45,
+      "pedal_deg": 11.7,
+      "servo_relative_deg": 14.301,
+      "roller_track_mm": 128.014,
+      "contact_error_mm": -0.0,
+      "spring_eye_length_mm": 77.429,
+      "spring_only_torque_Nm": 0.2091,
+      "gravity_Nm": 0.0936,
+      "estimated_servo_Nm": 0.0808
+    },
+    {
+      "percent": 50,
+      "pedal_deg": 11.0,
+      "servo_relative_deg": 12.513,
+      "roller_track_mm": 127.076,
+      "contact_error_mm": -0.0,
+      "spring_eye_length_mm": 77.715,
+      "spring_only_torque_Nm": 0.2161,
+      "gravity_Nm": 0.0939,
+      "estimated_servo_Nm": 0.0858
+    },
+    {
+      "percent": 55,
+      "pedal_deg": 10.3,
+      "servo_relative_deg": 10.771,
+      "roller_track_mm": 126.221,
+      "contact_error_mm": 0.0,
+      "spring_eye_length_mm": 77.999,
+      "spring_only_torque_Nm": 0.2229,
+      "gravity_Nm": 0.0941,
+      "estimated_servo_Nm": 0.0906
+    },
+    {
+      "percent": 60,
+      "pedal_deg": 9.6,
+      "servo_relative_deg": 9.068,
+      "roller_track_mm": 125.446,
+      "contact_error_mm": 0.0,
+      "spring_eye_length_mm": 78.282,
+      "spring_only_torque_Nm": 0.2296,
+      "gravity_Nm": 0.0943,
+      "estimated_servo_Nm": 0.0954
+    },
+    {
+      "percent": 65,
+      "pedal_deg": 8.9,
+      "servo_relative_deg": 7.399,
+      "roller_track_mm": 124.745,
+      "contact_error_mm": 0.0,
+      "spring_eye_length_mm": 78.563,
+      "spring_only_torque_Nm": 0.2361,
+      "gravity_Nm": 0.0945,
+      "estimated_servo_Nm": 0.0999
+    },
+    {
+      "percent": 70,
+      "pedal_deg": 8.2,
+      "servo_relative_deg": 5.758,
+      "roller_track_mm": 124.114,
+      "contact_error_mm": 0.0,
+      "spring_eye_length_mm": 78.843,
+      "spring_only_torque_Nm": 0.2425,
+      "gravity_Nm": 0.0946,
+      "estimated_servo_Nm": 0.1043
+    },
+    {
+      "percent": 75,
+      "pedal_deg": 7.5,
+      "servo_relative_deg": 4.142,
+      "roller_track_mm": 123.55,
+      "contact_error_mm": -0.0,
+      "spring_eye_length_mm": 79.122,
+      "spring_only_torque_Nm": 0.2487,
+      "gravity_Nm": 0.0948,
+      "estimated_servo_Nm": 0.1084
+    },
+    {
+      "percent": 80,
+      "pedal_deg": 6.8,
+      "servo_relative_deg": 2.546,
+      "roller_track_mm": 123.051,
+      "contact_error_mm": 0.0,
+      "spring_eye_length_mm": 79.399,
+      "spring_only_torque_Nm": 0.2548,
+      "gravity_Nm": 0.0949,
+      "estimated_servo_Nm": 0.1124
+    },
+    {
+      "percent": 85,
+      "pedal_deg": 6.1,
+      "servo_relative_deg": 0.966,
+      "roller_track_mm": 122.615,
+      "contact_error_mm": -0.0,
+      "spring_eye_length_mm": 79.674,
+      "spring_only_torque_Nm": 0.2607,
+      "gravity_Nm": 0.0951,
+      "estimated_servo_Nm": 0.116
+    },
+    {
+      "percent": 90,
+      "pedal_deg": 5.4,
+      "servo_relative_deg": -0.6,
+      "roller_track_mm": 122.239,
+      "contact_error_mm": 0.0,
+      "spring_eye_length_mm": 79.947,
+      "spring_only_torque_Nm": 0.2665,
+      "gravity_Nm": 0.0952,
+      "estimated_servo_Nm": 0.1195
+    },
+    {
+      "percent": 95,
+      "pedal_deg": 4.7,
+      "servo_relative_deg": -2.157,
+      "roller_track_mm": 121.924,
+      "contact_error_mm": -0.0,
+      "spring_eye_length_mm": 80.219,
+      "spring_only_torque_Nm": 0.2721,
+      "gravity_Nm": 0.0953,
+      "estimated_servo_Nm": 0.1226
+    },
+    {
+      "percent": 100,
+      "pedal_deg": 4.0,
+      "servo_relative_deg": -3.708,
+      "roller_track_mm": 121.667,
+      "contact_error_mm": -0.0,
+      "spring_eye_length_mm": 80.489,
+      "spring_only_torque_Nm": 0.2775,
+      "gravity_Nm": 0.0954,
+      "estimated_servo_Nm": 0.1254
+    }
+  ],
+  "toe_travel_mm": 35.41055705336167,
+  "servo_sweep_deg": 38.05723288604402,
+  "assumed_spring": {
+    "count_per_pedal": 2,
+    "eye_length_unloaded_mm": 70,
+    "rate_N_per_mm": 0.6,
+    "initial_tension_N": 0
+  },
+  "warnings": [
+    "Spring selection is a calculation example, not a purchased part specification.",
+    "MG996R continuous torque unverified.",
+    "Horn fit, servo flange and lead outlet require coupon/physical checks.",
+    "No FEA or rated human foot load.",
+    "Sensors are not included; no sensed pedal input until independent sensors are fitted."
+  ]
+}
