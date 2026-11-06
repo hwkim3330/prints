@@ -1,0 +1,18 @@
+{
+  "A-base": {
+    "minutes": 834,
+    "grams": 363.6
+  },
+  "B-footboards": {
+    "minutes": 552,
+    "grams": 236.8
+  },
+  "C-axle-hardware": {
+    "minutes": 112,
+    "grams": 41.6
+  },
+  "D-fit": {
+    "minutes": 48,
+    "grams": 12.8
+  }
+}

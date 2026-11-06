@@ -19,13 +19,17 @@ def cross_bore(diameter, length, x, y=0, z=PIVOT_Z):
     return cq.Workplane("YZ").circle(diameter/2).extrude(length).translate((x,y,z))
 
 def base():
-    shape = rounded(244,212,8,12,82)
+    shape = rounded(240,212,9,14,82).faces(">Z").edges().chamfer(1.5)
     for x in (-106,0,106):
         # Wide, sloping supports transfer hinge load into the full base.
-        tower = (cq.Workplane("YZ").polyline([(-23,7),(28,7),(15,33),(11,45),
-                   (-11,45),(-17,29)]).close().extrude(7,both=True).translate((x,0,0)))
-        shape = shape.union(tower)
-        shape = shape.cut(cross_bore(16.6,18,x-9))
+        tower = (cq.Workplane("YZ").polyline([(-23,7),(28,7),(15,33),(11,50),
+                   (-11,50),(-17,29)]).close().extrude(7,both=True).translate((x,0,0)))
+        root = (cq.Workplane("XY",origin=(x,0,8)).rect(27,48)
+                .workplane(offset=8).rect(14,34).loft())
+        shape = shape.union(root).union(tower)
+        roof = (cq.Workplane("YZ").polyline([(-5.87,5.87),(0,11.74),(5.87,5.87)])
+                .close().extrude(18).translate((x-9,0,PIVOT_Z)))
+        shape = shape.cut(cross_bore(16.6,18,x-9).union(roof))
     for x in CENTERS:
         heel_angle = radians(14)
         heel_height = PIVOT_Z - 24*tan(heel_angle) + 5/cos(heel_angle)
@@ -36,10 +40,14 @@ def base():
 def pedal(width):
     face = rounded(width,150,8,8,49).translate((0,0,5))
     hub = cross_bore(34,width-4,-(width-4)/2,0,0)
-    shape = face.union(hub)
+    shape = face.union(hub.cut(block(width+2,40,8,0,0,13)))
     for x in (-width/2+8,width/2-8):
-        shape = shape.union(block(10,130,12,x,50,-6))
-    return shape.cut(cross_bore(16.7,width+2,-width/2-1,0,0))
+        shape = shape.union(block(12,124,15,x,48,-9))
+    for y in (46,60,74,88,102):
+        shape = shape.cut(rounded(width-26,4,1,1.8,y).translate((0,0,12.3)))
+    roof = (cq.Workplane("YZ").polyline([(-5.9,-5.9),(0,-11.8),(5.9,-5.9)])
+            .close().extrude(width+2).translate((-width/2-1,0,0)))
+    return shape.cut(cross_bore(16.7,width+2,-width/2-1,0,0).union(roof))
 
 def shaft():
     # Print flat along the axis. Facet provides a continuous bed contact.
