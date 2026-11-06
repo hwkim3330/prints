@@ -1,0 +1,22 @@
+[
+  {
+    "width_mm": 88,
+    "pedal_degrees": [
+      13,
+      9
+    ],
+    "max_rigid_intersection_mm3": 0,
+    "servo_sweep_deg": 10.811979563535854,
+    "minimum_analytical_pad_separation_mm": -1.4210854715202004e-14
+  },
+  {
+    "width_mm": 76,
+    "pedal_degrees": [
+      13,
+      7
+    ],
+    "max_rigid_intersection_mm3": 0,
+    "servo_sweep_deg": 15.832044481296647,
+    "minimum_analytical_pad_separation_mm": -1.4210854715202004e-14
+  }
+]

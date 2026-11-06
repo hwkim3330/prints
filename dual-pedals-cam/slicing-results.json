@@ -1,0 +1,27 @@
+{
+  "A-base": {
+    "minutes": 968,
+    "grams": 420.9,
+    "warnings": ""
+  },
+  "B-footboards": {
+    "minutes": 556,
+    "grams": 237.9,
+    "warnings": ""
+  },
+  "C-axle-hardware": {
+    "minutes": 112,
+    "grams": 41.6,
+    "warnings": ""
+  },
+  "D-first-channel": {
+    "minutes": 146,
+    "grams": 50.7,
+    "warnings": ""
+  },
+  "E-second-channel": {
+    "minutes": 148,
+    "grams": 51.5,
+    "warnings": ""
+  }
+}
