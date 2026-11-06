@@ -15,13 +15,18 @@
     "warnings": ""
   },
   "D-first-channel": {
-    "minutes": 146,
-    "grams": 50.7,
+    "minutes": 258,
+    "grams": 99.4,
     "warnings": ""
   },
   "E-second-channel": {
-    "minutes": 148,
-    "grams": 51.5,
+    "minutes": 138,
+    "grams": 49.9,
+    "warnings": ""
+  },
+  "F-horn-gauge": {
+    "minutes": 44,
+    "grams": 16.4,
     "warnings": ""
   }
 }

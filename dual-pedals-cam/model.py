@@ -12,7 +12,7 @@ PAD_R = 5
 MOUNT_X = -7
 
 def spring(thickness):
-    # Print on the narrow side so filament paths follow the leaf.
+    # Lay the whole leaf on the bed, with its length in the XY plane.
     leaf = p.block(12,72,thickness,-2,114,0)
     root = p.block(22,16,8,0,154,0)
     tip = p.block(12,8,10,-2,81,0).edges('|X').fillet(1.7)
@@ -54,7 +54,7 @@ def keeper():
         bridge = bridge.union(p.block(4,8,6,-23,y,54))
     return bridge.translate((MOUNT_X,0,0))
 
-def horn():
+def horn(clearance=.3):
     # Six stock arms; these nominal values still require the existing fit gauge.
     pts=[]
     tip=2.3
@@ -65,7 +65,7 @@ def horn():
     for i in range(6):
         a=i*math.pi/3
         pts += [(x*math.cos(a)-y*math.sin(a),x*math.sin(a)+y*math.cos(a)) for x,y in sector]
-    return cq.Workplane('XY').polyline(pts).close().offset2D(.3).extrude(2.4)
+    return cq.Workplane('XY').polyline(pts).close().offset2D(clearance).extrude(2.4)
 
 def cam():
     disc=cq.Workplane('XY').circle(21).extrude(8)
@@ -82,8 +82,18 @@ def cam_pose(angle,x):
     b=math.degrees(beta(angle))
     return cam().rotate((0,0,0),(0,1,0),90).rotate((0,0,0),(1,0,0),-90-b).translate((x-5.4,SY,SZ))
 
+def socket_coupon():
+    # Cut directly from the throttle side of the production base.
+    return p.ground(base().intersect(p.block(91,58,59,48,159,6)))
+
+def horn_coupon():
+    plate = p.rounded(116,39,4,4)
+    for x, clearance in ((-38,.2),(0,.3),(38,.4)):
+        plate = plate.cut(horn(clearance).translate((x,0,1.6)))
+    return plate
+
 def export():
-    shapes={'01-base':base(),'02-brake':p.pedal(88),'03-throttle':p.pedal(76),
+    shapes={'00-socket-gauge':socket_coupon(),'00-horn-gauge':horn_coupon(),'01-base':base(),'02-brake':p.pedal(88),'03-throttle':p.pedal(76),
             '04-shaft':p.shaft(),'05-clip-x2':p.clip(),'06-throttle-spacer-x2':p.spacer(7.75),
             '07-brake-spacer-x2':p.spacer(1.75),'08-brake-leaf':spring(3.2),
             '09-throttle-leaf':spring(2.4),'10-cradle-x2':cradle(),'11-keeper-x2':keeper(),
@@ -91,7 +101,7 @@ def export():
     for name,shape in shapes.items():
         if name in ('02-brake','03-throttle','12-cam-x2'):
             shape=shape.rotate((0,0,0),(1,0,0),180)
-        if name in ('08-brake-leaf','09-throttle-leaf','10-cradle-x2','11-keeper-x2'):
+        if name in ('10-cradle-x2','11-keeper-x2'):
             shape=shape.rotate((0,0,0),(0,1,0),90)
         shape=p.ground(shape)
         assert shape.val().isValid() and len(shape.solids().vals())==1,name
