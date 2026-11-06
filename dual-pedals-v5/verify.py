@@ -48,7 +48,23 @@ for i in range(21):
   a=math.radians(m.REST-(m.REST-m.DOWN)*j/20)
   gap=-y*math.sin(a)+(z-m.ZP)*math.cos(a)-18
   manual.append(gap)
-report={'status':'CAD checks only; physical fit/load untested','rigid_collisions_mm3':collisions,'manual_min_gap_mm':min(manual),'angle_states':rows,'toe_travel_mm':148*(math.sin(math.radians(18))-math.sin(math.radians(4))),'servo_sweep_deg':m.beta(18)-m.beta(4),'assumed_spring':{'count_per_pedal':2,'eye_length_unloaded_mm':70,'rate_N_per_mm':.6,'initial_tension_N':0},'warnings':['Spring selection is a calculation example, not a purchased part specification.','MG996R continuous torque unverified.','Horn fit, servo flange and lead outlet require coupon/physical checks.','No FEA or rated human foot load.','Sensors are not included; no sensed pedal input until independent sensors are fitted.']}
+# Both axles share the same axis. Include end washer and specified screw head envelope.
+pitch = m.CENTERS[1] - m.CENTERS[0]
+retainer_stack = m.AXLE_END_WASHER + m.AXLE_HEAD_HEIGHT
+axle_tip_gap = pitch - m.AXLE_LENGTH
+retainer_gap = axle_tip_gap - 2 * retainer_stack
+assert retainer_gap >= 0.5
+# Bearing outer face x=32 and cheek inner face x=48-6. The spacer
+# bears on the inner race through the cap's central clearance hole.
+spacer_width = m.shaft_spacer().val().BoundingBox().zlen
+spacer_endplay = 2 * (48 - 6 - 32 - spacer_width)
+assert 0 < spacer_endplay <= 1.0
+def stop_height(angle, y):
+ angle = math.radians(angle)
+ return m.ZP + y*math.tan(angle) - 10/math.cos(angle)
+# Solid height of the optional manual brake stop at the rear edge of the existing tower.
+manual_brake_bumper_mm = stop_height(m.BRAKE_MANUAL_STOP,116) - stop_height(m.DOWN,116)
+report={'manual_brake_stop_deg':m.BRAKE_MANUAL_STOP,'manual_brake_stop_added_height_mm':manual_brake_bumper_mm,'adjacent_axle_tip_gap_mm' :axle_tip_gap,'adjacent_retainer_clearance_mm':retainer_gap,'nominal_pedal_endplay_mm':spacer_endplay,'status':'CAD checks only; physical fit/load untested','rigid_collisions_mm3':collisions,'manual_min_gap_mm':min(manual),'angle_states':rows,'toe_travel_mm':148*(math.sin(math.radians(18))-math.sin(math.radians(4))),'servo_sweep_deg':m.beta(18)-m.beta(4),'assumed_spring':{'count_per_pedal':2,'eye_length_unloaded_mm':70,'rate_N_per_mm':.6,'initial_tension_N':0},'warnings':['Spring selection is a calculation example, not a purchased part specification.','MG996R continuous torque unverified.','Horn fit, servo flange and lead outlet require coupon/physical checks.','No FEA or rated human foot load.','Sensors are not included; no sensed pedal input until independent sensors are fitted.']}
 (O/'verification.json').write_text(json.dumps(report,indent=2))
 print(json.dumps({k:v for k,v in report.items() if k!='angle_states'},indent=2))
 assert not collisions

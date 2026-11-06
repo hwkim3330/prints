@@ -8,6 +8,10 @@ import cadquery as cq
 O=Path(__file__).resolve().parent
 CENTERS=(-58,58); ZP=38; SY=175; SZ=68; L=55; RR=8
 REST=18; DOWN=4
+AXLE_LENGTH = 110
+AXLE_HEAD_HEIGHT = 1.5
+AXLE_END_WASHER = 1.0
+BRAKE_MANUAL_STOP = 10
 HORN_OD=32; HORN_ROOT=7.32; HORN_TIP=4.6; HORN_VALLEY=8.1
 HORN_THICK=2; CLEAR=.3; HORN_HOLES=(6.5,14.5)
 def box(w,d,h,x=0,y=0,z=0):
@@ -169,7 +173,13 @@ def assembly(a=REST,explode=False):
   out.append(('arm',arm_pose(arm(),beta(a)).translate((c,0,lift))))
   b=math.radians(beta(a)); yy=SY-L*math.cos(b); zz=SZ+L*math.sin(b)
   for x in (11,16): out.append(('bearing',xbore(16,5,c+x,yy,zz+lift).cut(xbore(5,7,c+x-1,yy,zz+lift))))
-  out.append(('axle',xbore(8,120,c-60,0,ZP+lift)))
+  out.append(('axle',xbore(8,AXLE_LENGTH,c-AXLE_LENGTH/2,0,ZP+lift)))
+  for sign in (-1,1):
+   end = c + sign * AXLE_LENGTH / 2
+   start = end - AXLE_END_WASHER if sign < 0 else end
+   out.append(('axle',xbore(12,AXLE_END_WASHER,start,0,ZP+lift).cut(xbore(4.5,AXLE_END_WASHER+2,start-1,0,ZP+lift))))
+   head_start = start - AXLE_HEAD_HEIGHT if sign < 0 else start + AXLE_END_WASHER
+   out.append(('axle',xbore(7,AXLE_HEAD_HEIGHT,head_start,0,ZP+lift)))
   for x in (-32,25): out.append(('bearing',pivot(xbore(22,7,x).cut(xbore(8,9,x-1)),a).translate((c,0,lift))))
   for x in (-35,32): out.append(('bearing',pivot(bearing_cap().rotate((0,0,0),(0,1,0),90).rotate((0,0,0),(1,0,0),90).translate((x,0,0)),a).translate((c,0,lift))))
   # Spring axes are shown as lines in diagram, not invented coil geometry.

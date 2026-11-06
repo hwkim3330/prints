@@ -1,4 +1,9 @@
 {
+  "manual_brake_stop_deg": 10,
+  "manual_brake_stop_added_height_mm": 12.212572438689001,
+  "adjacent_axle_tip_gap_mm": 6,
+  "adjacent_retainer_clearance_mm": 1.0,
+  "nominal_pedal_endplay_mm": 1.0,
   "status": "CAD checks only; physical fit/load untested",
   "rigid_collisions_mm3": [],
   "manual_min_gap_mm": -1.4210854715202004e-14,
