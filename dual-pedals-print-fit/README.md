@@ -11,7 +11,7 @@ CadQuery에서 모든 STL을 유효 솔리드로 확인하고, 두 발판 각각
 
 `assembly.step`에는 베이스·축·두 발판을 담았다. CadQuery로 `python model.py`를 실행하면 STL과 STEP을 재생성한다.
 
-베이스는 9 mm 두께이며 축 지지대의 바닥을 넓히고, 발판에는 12 mm 폭의 아래쪽 보강 리브를 넣었다.
+축 지지대 윗선을 곡선으로 낮추고 축 구멍 꼭대기 위에 3.76 mm를 남겼다. 발판의 힌지 몸통을 양쪽으로 넓혀 축이 덜 보이게 하고, 발판 상단 테두리에 1.2 mm 모따기를 넣었다. 베이스는 9 mm 두께이며 축 지지대의 바닥을 넓히고, 발판에는 12 mm 폭의 아래쪽 보강 리브를 넣었다.
 
 ## Bambu A1 PETG 출력판
 
@@ -19,8 +19,8 @@ CadQuery에서 모든 STL을 유효 솔리드로 확인하고, 두 발판 각각
 
 | 판 | 예상 시간 | 재료 |
 |---|---:|---:|
-| [A-base](A-base-A1-PETG.gcode.3mf) | 13시간 54분 | 363.6 g |
-| [B-footboards](B-footboards-A1-PETG.gcode.3mf) | 9시간 12분 | 236.8 g |
+| [A-base](A-base-A1-PETG.gcode.3mf) | 13시간 47분 | 360.3 g |
+| [B-footboards](B-footboards-A1-PETG.gcode.3mf) | 9시간 16분 | 238.0 g |
 | [C-axle-hardware](C-axle-hardware-A1-PETG.gcode.3mf) | 1시간 52분 | 41.6 g |
 | [D-fit](D-fit-A1-PETG.gcode.3mf) | 0시간 48분 | 12.8 g |
 

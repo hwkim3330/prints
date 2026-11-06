@@ -22,8 +22,9 @@ def base():
     shape = rounded(240,212,9,14,82).faces(">Z").edges().chamfer(1.5)
     for x in (-106,0,106):
         # Wide, sloping supports transfer hinge load into the full base.
-        tower = (cq.Workplane("YZ").polyline([(-23,7),(28,7),(15,33),(11,50),
-                   (-11,50),(-17,29)]).close().extrude(7,both=True).translate((x,0,0)))
+        tower = (cq.Workplane("YZ").moveTo(-23,7).lineTo(28,7).lineTo(15,33)
+                 .lineTo(11,42).threePointArc((0,48.5),(-11,42))
+                 .lineTo(-17,29).close().extrude(7,both=True).translate((x,0,0)))
         root = (cq.Workplane("XY",origin=(x,0,8)).rect(27,48)
                 .workplane(offset=8).rect(14,34).loft())
         shape = shape.union(root).union(tower)
@@ -38,8 +39,9 @@ def base():
     return shape
 
 def pedal(width):
-    face = rounded(width,150,8,8,49).translate((0,0,5))
-    hub = cross_bore(34,width-4,-(width-4)/2,0,0)
+    face = (rounded(width,150,8,9,49).faces(">Z").edges().chamfer(1.2)
+            .translate((0,0,5)))
+    hub = cross_bore(34,width-1.6,-(width-1.6)/2,0,0)
     shape = face.union(hub.cut(block(width+2,40,8,0,0,13)))
     for x in (-width/2+8,width/2-8):
         shape = shape.union(block(12,124,15,x,48,-9))
